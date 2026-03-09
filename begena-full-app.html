@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>በገና · Virtual Begena</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+Ethiopic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════ RESET & VARS */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f0803;
+  --bg2: #1a0d05;
+  --wood-dark: #2c1505;
+  --wood-mid: #5c2e0e;
+  --wood-light: #8b4a1e;
+  --leather: #7a2e0a;
+  --leather-hi: #b04820;
+  --gold: #c9922a;
+  --gold-light: #e8b84b;
+  --gold-pale: #f0d890;
+  --parchment: #f5e8c8;
+  --parchment-mid: #e8d5a8;
+  --parchment-dark: #c8a878;
+  --ink: #1a0d04;
+  --string-col: #d4b87a;
+  --cream: #fdf6e8;
+  --shadow: rgba(0,0,0,0.6);
+  --tab-h: 64px;
+}
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  background: var(--bg);
+  font-family: 'Crimson Pro', Georgia, serif;
+  color: var(--parchment);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════ BACKGROUND */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(120,60,10,0.12) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.008) 60px, rgba(255,255,255,0.008) 61px);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════ MAIN LAYOUT */
+.app-header {
+  position: relative; z-index: 10;
+  background: linear-gradient(180deg, rgba(44,21,5,0.95) 0%, rgba(26,13,5,0.9) 100%);
+  border-bottom: 1px solid rgba(201,146,42,0.25);
+  padding: 10px 20px 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.app-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 900;
+  color: var(--parchment);
+}
+.app-logo span { color: var(--gold-light); }
+.app-logo-eth {
+  font-family: 'Noto Serif Ethiopic', serif;
+  font-size: 13px; color: var(--gold);
+  opacity: 0.8; display: block; line-height: 1;
+}
+.lang-toggle {
+  background: rgba(201,146,42,0.15);
+  border: 1px solid rgba(201,146,42,0.3);
+  color: var(--gold);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; padding: 4px 10px;
+  border-radius: 2px; cursor: pointer;
+  transition: all 0.2s;
+}
+.lang-toggle:hover { background: rgba(201,146,42,0.3); }
+
+.pages {
+  flex: 1; overflow: hidden; position: relative; z-index: 2;
+}
+.page {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  display: none;
+  padding-bottom: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--wood-mid) var(--bg);
+}
+.page.active { display: block; animation: pageFade 0.3s ease; }
+@keyframes pageFade { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+
+/* ═══════════════════════════════════════════════════════════ BOTTOM NAV */
+.bottom-nav {
+  position: relative; z-index: 10;
+  background: linear-gradient(0deg, rgba(20,10,2,0.98) 0%, rgba(44,21,5,0.95) 100%);
+  border-top: 1px solid rgba(201,146,42,0.3);
+  display: flex; height: var(--tab-h);
+  flex-shrink: 0;
+}
+.nav-tab {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+  cursor: pointer; transition: all 0.2s;
+  border: none; background: transparent;
+  color: rgba(245,232,200,0.35);
+  font-family: 'Crimson Pro', serif;
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  position: relative; overflow: hidden;
+}
+.nav-tab::after {
+  content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 2px;
+  background: var(--gold); transform: scaleX(0); transition: transform 0.3s;
+}
+.nav-tab.active { color: var(--gold-light); }
+.nav-tab.active::after { transform: scaleX(1); }
+.nav-tab:hover { color: var(--parchment-mid); }
+.nav-icon { font-size: 22px; line-height: 1; }
+
+/* ═══════════════════════════════════════════════════════════ SECTION HEADERS */
+.section-head {
+  padding: 20px 20px 0;
+  text-align: center;
+}
+.section-head h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 700;
+  color: var(--parchment);
+}
+.section-head p {
+  font-size: 14px; color: var(--parchment-dark);
+  font-style: italic; margin-top: 4px;
+}
+.gold-line {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px auto; max-width: 300px;
+}
+.gold-line-bar { flex:1; height:1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.gold-line-dia { width:6px; height:6px; background: var(--gold); transform: rotate(45deg); flex-shrink:0; }
+
+/* ═══════════════════════════════════════════════════════════ ▶ PLAY MODULE */
+#playPage { padding: 0 0 20px; }
+
+.kignit-bar {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  justify-content: center; padding: 12px 14px 8px;
+  position: sticky; top: 0; z-index: 5;
+  background: rgba(15,8,3,0.92);
+  border-bottom: 1px solid rgba(201,146,42,0.15);
+  backdrop-filter: blur(4px);
+}
+.kignit-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(201,146,42,0.28);
+  color: var(--gold);
+  font-family: 'Playfair Display', serif;
+  font-size: 11.5px; padding: 5px 12px; border-radius: 2px;
+  cursor: pointer; transition: all 0.18s; white-space: nowrap;
+}
+.kignit-btn:hover { background: rgba(201,146,42,0.15); }
+.kignit-btn.active { background: var(--gold); color: var(--wood-dark); font-weight: 700; border-color: var(--gold-light); }
+
+.instrument-wrap {
+  display: flex; justify-content: center;
+  position: relative; padding: 6px 0;
+}
+.ripple-container { position: absolute; inset: 0; pointer-events: none; z-index: 15; overflow: hidden; }
+.ripple {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,184,75,0.4) 0%, transparent 70%);
+  width: 70px; height: 70px; margin-left: -35px; margin-top: -35px;
+  animation: rippleOut 0.7s ease-out forwards; pointer-events: none;
+}
+@keyframes rippleOut { 0%{transform:scale(0.2);opacity:1;} 100%{transform:scale(3);opacity:0;} }
+
+#begenaSvg { width: min(360px, 94vw); height: auto; cursor: default; filter: drop-shadow(0 16px 48px rgba(0,0,0,0.75)); }
+.string-hit { cursor: pointer; }
+
+.note-popup {
+  position: absolute; top: 42%; left: 50%; transform: translate(-50%,-50%);
+  background: rgba(15,6,2,0.92); border: 1px solid var(--gold);
+  border-radius: 4px; padding: 10px 20px; text-align: center;
+  pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 20;
+  min-width: 110px;
+}
+.note-popup.show { opacity: 1; }
+.np-note { font-family: 'Playfair Display',serif; font-size: 30px; color: var(--gold-light); font-weight: 700; line-height:1; }
+.np-hz   { font-family: 'JetBrains Mono',mono; font-size: 11px; color: var(--parchment-dark); margin-top: 3px; }
+.np-str  { font-size: 10px; color: var(--gold); opacity: 0.7; margin-top: 2px; }
+.np-name { font-size: 12px; color: var(--parchment-mid); font-style: italic; margin-top: 2px; }
+
+/* ═══════════════════════════════════════════════════════════ ▶ TUNER MODULE */
+#tunePage { padding: 0 0 20px; }
+
+.tuner-kignit-bar {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  justify-content: center; padding: 12px 14px 8px;
+  border-bottom: 1px solid rgba(201,146,42,0.15);
+}
+.tuner-string-list {
+  display: grid; grid-template-columns: repeat(5,1fr);
+  gap: 8px; padding: 12px 14px;
+}
+.tuner-string-card {
+  background: rgba(44,21,5,0.6);
+  border: 1px solid rgba(201,146,42,0.2);
+  border-radius: 4px; padding: 10px 6px; text-align: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.tuner-string-card:hover { border-color: var(--gold); transform: translateY(-1px); }
+.tuner-string-card.selected { border-color: var(--gold-light); background: rgba(201,146,42,0.12); }
+.tsc-num { font-family: 'JetBrains Mono',monospace; font-size: 10px; color: var(--gold); opacity: 0.7; }
+.tsc-note { font-family: 'Playfair Display',serif; font-size: 17px; color: var(--parchment); font-weight: 700; }
+.tsc-hz { font-size: 10px; color: var(--parchment-dark); font-family: monospace; }
+.tsc-status { margin-top: 4px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden; }
+.tsc-bar { height: 100%; width: 50%; background: var(--gold); transition: width 0.3s, background 0.3s; border-radius: 3px; }
+
+.tuner-main {
+  margin: 0 14px 14px;
+  background: rgba(44,21,5,0.5);
+  border: 1px solid rgba(201,146,42,0.25);
+  border-radius: 6px; padding: 20px;
+}
+.tuner-title {
+  text-align: center;
+  font-family: 'Playfair Display',serif;
+  font-size: 15px; color: var(--parchment-dark);
+  margin-bottom: 16px;
+}
+.tuner-title span { color: var(--gold-light); font-style: italic; }
+
+/* Dial */
+.tuner-dial-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+#tunerDial { width: 240px; height: 130px; }
+
+.tuner-readout {
+  display: flex; justify-content: center; gap: 20px;
+  margin-bottom: 16px;
+}
+.tr-box {
+  text-align: center;
+  background: rgba(15,8,3,0.5); border: 1px solid rgba(201,146,42,0.2);
+  border-radius: 3px; padding: 8px 14px;
+}
+.tr-label { font-size: 10px; font-family: 'JetBrains Mono',monospace; color: var(--gold); letter-spacing: 1px; }
+.tr-val { font-family: 'Playfair Display',serif; font-size: 22px; color: var(--parchment); margin-top: 2px; }
+.tr-val.in-tune { color: #7ec87a; }
+.tr-val.sharp { color: #e87a5a; }
+.tr-val.flat { color: #7ab8e8; }
+
+.tuner-controls { display: flex; gap: 10px; justify-content: center; }
+.tuner-btn {
+  background: rgba(201,146,42,0.12); border: 1px solid rgba(201,146,42,0.35);
+  color: var(--gold); font-family: 'Crimson Pro',serif;
+  font-size: 14px; padding: 8px 20px; border-radius: 3px;
+  cursor: pointer; transition: all 0.2s;
+}
+.tuner-btn:hover { background: rgba(201,146,42,0.25); }
+.tuner-btn.listening { background: rgba(120,200,90,0.15); border-color: #7ec87a; color: #7ec87a; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+
+.tuner-ref-note {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid rgba(201,146,42,0.15);
+}
+.ref-label { font-size: 13px; color: var(--parchment-dark); font-style: italic; }
+.play-ref-btn {
+  background: var(--gold); color: var(--wood-dark);
+  border: none; font-family: 'Playfair Display',serif;
+  font-size: 13px; font-weight: 700;
+  padding: 6px 16px; border-radius: 2px; cursor: pointer;
+  transition: all 0.2s;
+}
+.play-ref-btn:hover { background: var(--gold-light); }
+
+/* ═══════════════════════════════════════════════════════════ ▶ LEARN MODULE */
+#learnPage { padding: 0 0 20px; }
+
+.chapter-nav {
+  display: flex; gap: 0;
+  border-bottom: 1px solid rgba(201,146,42,0.2);
+  overflow-x: auto; padding: 0 14px;
+  position: sticky; top: 0; z-index: 5;
+  background: rgba(15,8,3,0.95); backdrop-filter: blur(4px);
+}
+.chapter-tab {
+  flex-shrink: 0; padding: 12px 16px;
+  font-family: 'Crimson Pro', serif; font-size: 13px;
+  color: rgba(245,232,200,0.4); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: all 0.2s;
+  white-space: nowrap;
+}
+.chapter-tab:hover { color: var(--parchment-mid); }
+.chapter-tab.active { color: var(--gold-light); border-bottom-color: var(--gold); }
+
+.chapter-content { display: none; padding: 20px 18px; }
+.chapter-content.active { display: block; animation: pageFade 0.3s ease; }
+
+.chapter-head {
+  margin-bottom: 20px;
+}
+.ch-number { font-family: 'JetBrains Mono',monospace; font-size: 10px; color: var(--gold); letter-spacing: 3px; margin-bottom: 6px; }
+.ch-title { font-family: 'Playfair Display',serif; font-size: 24px; font-weight: 700; color: var(--parchment); line-height: 1.2; }
+.ch-subtitle { font-size: 14px; color: var(--parchment-dark); font-style: italic; margin-top: 4px; }
+
+.ch-body { font-size: 15px; line-height: 1.75; color: var(--parchment-mid); }
+.ch-body p { margin-bottom: 14px; }
+.ch-body h3 { font-family: 'Playfair Display',serif; font-size: 17px; color: var(--parchment); margin: 20px 0 8px; }
+.ch-body .quote {
+  border-left: 3px solid var(--gold); padding: 10px 16px;
+  margin: 16px 0; font-style: italic; color: var(--parchment-dark);
+  background: rgba(201,146,42,0.05); border-radius: 0 4px 4px 0;
+}
+.ch-body .amharic {
+  font-family: 'Noto Serif Ethiopic',serif;
+  font-size: 18px; color: var(--gold-light);
+  display: block; margin: 8px 0;
+}
+
+/* Anatomy diagram */
+.anatomy-wrap { position: relative; margin: 16px 0; }
+#anatomySvg { width: 100%; max-width: 320px; display: block; margin: 0 auto; }
+.anatomy-labels {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-top: 14px;
+}
+.anat-label {
+  background: rgba(44,21,5,0.6); border: 1px solid rgba(201,146,42,0.2);
+  border-radius: 3px; padding: 8px 12px; cursor: pointer;
+  transition: all 0.2s;
+}
+.anat-label:hover, .anat-label.active { border-color: var(--gold); background: rgba(201,146,42,0.12); }
+.al-name { font-family: 'Playfair Display',serif; font-size: 13px; color: var(--parchment); font-weight: 700; }
+.al-amh { font-family: 'Noto Serif Ethiopic',serif; font-size: 12px; color: var(--gold); }
+.al-desc { font-size: 11.5px; color: var(--parchment-dark); margin-top: 3px; line-height: 1.4; display: none; }
+.anat-label.active .al-desc { display: block; }
+
+/* Scale theory table */
+.scale-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+.scale-table th {
+  background: rgba(44,21,5,0.8); color: var(--gold);
+  padding: 8px 10px; text-align: left; font-family: 'JetBrains Mono',monospace;
+  font-size: 11px; letter-spacing: 1px; font-weight: 500;
+  border-bottom: 1px solid rgba(201,146,42,0.3);
+}
+.scale-table td {
+  padding: 7px 10px; border-bottom: 1px solid rgba(201,146,42,0.1);
+  color: var(--parchment-mid);
+}
+.scale-table tr:hover td { background: rgba(201,146,42,0.06); }
+.scale-table .note-cell { font-family: 'JetBrains Mono',monospace; color: var(--gold-light); }
+.scale-table .hz-cell { font-family: 'JetBrains Mono',monospace; color: var(--parchment-dark); }
+
+/* Practice mode */
+.practice-wrap { margin: 10px 0; }
+.practice-song-select {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.song-btn {
+  background: rgba(44,21,5,0.7); border: 1px solid rgba(201,146,42,0.25);
+  color: var(--parchment-mid); font-family: 'Crimson Pro',serif; font-size: 13px;
+  padding: 6px 14px; border-radius: 2px; cursor: pointer; transition: all 0.2s;
+}
+.song-btn:hover { border-color: var(--gold); color: var(--parchment); }
+.song-btn.active { background: var(--gold); color: var(--wood-dark); border-color: var(--gold-light); font-weight: 600; }
+
+.practice-stage {
+  background: rgba(15,8,3,0.7); border: 1px solid rgba(201,146,42,0.25);
+  border-radius: 6px; padding: 16px; overflow: hidden;
+}
+.falling-area {
+  width: 100%; height: 200px; position: relative;
+  background: repeating-linear-gradient(90deg, rgba(201,146,42,0.04) 0px, rgba(201,146,42,0.04) 1px, transparent 1px, transparent calc(100%/10));
+  border-bottom: 2px solid rgba(201,146,42,0.3); overflow: hidden;
+  border-radius: 4px 4px 0 0;
+}
+.string-col {
+  position: absolute; top: 0; height: 100%;
+  width: calc(100% / 10);
+  border-right: 1px solid rgba(201,146,42,0.06);
+}
+.falling-note {
+  position: absolute; width: calc(100%/10 - 6px);
+  height: 28px; border-radius: 3px; display: flex;
+  align-items: center; justify-content: center;
+  font-family: 'Playfair Display',serif; font-size: 12px; font-weight: 700;
+  color: var(--wood-dark); animation: fall linear forwards;
+  left: 2px;
+}
+@keyframes fall { from { top: -32px; } to { top: 200px; } }
+
+.hit-zone {
+  display: flex; margin-top: 0;
+}
+.hit-btn {
+  flex: 1; height: 42px;
+  background: rgba(44,21,5,0.8); border: 1px solid rgba(201,146,42,0.2);
+  border-radius: 0; color: var(--gold); cursor: pointer;
+  font-family: 'JetBrains Mono',monospace; font-size: 10px;
+  transition: background 0.1s; display: flex; align-items: center; justify-content: center;
+  border-right: none;
+}
+.hit-btn:last-child { border-right: 1px solid rgba(201,146,42,0.2); }
+.hit-btn:active, .hit-btn.lit { background: rgba(201,146,42,0.35); color: var(--gold-light); }
+.hit-btn.correct { background: rgba(100,200,80,0.3); color: #9ef090; }
+.hit-btn.wrong { background: rgba(220,80,50,0.3); color: #f09090; }
+
+.practice-controls {
+  display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap;
+}
+.prac-btn {
+  background: var(--gold); color: var(--wood-dark);
+  border: none; font-family: 'Playfair Display',serif;
+  font-weight: 700; font-size: 14px; padding: 8px 20px; border-radius: 2px;
+  cursor: pointer; transition: all 0.2s;
+}
+.prac-btn:hover { background: var(--gold-light); }
+.prac-btn.secondary {
+  background: rgba(201,146,42,0.15); color: var(--gold);
+  border: 1px solid rgba(201,146,42,0.3);
+}
+.score-box {
+  font-family: 'JetBrains Mono',monospace; font-size: 13px;
+  color: var(--parchment-mid); margin-left: auto;
+}
+.score-box span { color: var(--gold-light); }
+
+/* Hand position guide */
+.technique-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+.technique-card {
+  background: rgba(44,21,5,0.5); border: 1px solid rgba(201,146,42,0.2);
+  border-radius: 4px; padding: 14px; cursor: pointer; transition: all 0.2s;
+}
+.technique-card:hover { border-color: var(--gold); }
+.tc-icon { font-size: 28px; margin-bottom: 8px; }
+.tc-title { font-family: 'Playfair Display',serif; font-size: 14px; color: var(--parchment); font-weight: 700; margin-bottom: 4px; }
+.tc-desc { font-size: 12.5px; color: var(--parchment-dark); line-height: 1.45; }
+
+/* Progress tracking */
+.progress-bar-wrap { margin: 8px 0 16px; }
+.pb-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--parchment-dark); margin-bottom: 4px; }
+.pb-track { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.pb-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 3px; transition: width 0.6s ease; }
+
+/* Info cards */
+.info-card {
+  background: rgba(44,21,5,0.45); border: 1px solid rgba(201,146,42,0.18);
+  border-radius: 4px; padding: 14px 16px; margin: 10px 0;
+}
+.ic-title { font-family: 'Playfair Display',serif; font-size: 15px; color: var(--parchment); font-weight: 700; margin-bottom: 6px; }
+.ic-body { font-size: 13.5px; color: var(--parchment-dark); line-height: 1.6; }
+
+/* ═══════════════════════════════════════════════════════════ UTILS */
+.gold-tag {
+  display: inline-block; background: rgba(201,146,42,0.18);
+  border: 1px solid rgba(201,146,42,0.35); color: var(--gold);
+  font-family: 'JetBrains Mono',monospace; font-size: 10px;
+  padding: 2px 8px; border-radius: 2px; letter-spacing: 0.5px; margin: 2px;
+}
+</style>
+</head>
+<body>
+
+<!-- ══ APP HEADER ══ -->
+<div class="app-header">
+  <div>
+    <div class="app-logo"><span>Begena</span> · Virtual</div>
+    <div class="app-logo-eth">በገና</div>
+  </div>
+  <button class="lang-toggle" id="langToggle" onclick="toggleLang()">EN / አማ</button>
+</div>
+
+<!-- ══ PAGES ══ -->
+<div class="pages">
+
+  <!-- ▶▶ PLAY PAGE ▶▶ -->
+  <div class="page active" id="playPage">
+    <div class="kignit-bar" id="kignitBar">
+      <button class="kignit-btn active" data-k="selamta">Selamta</button>
+      <button class="kignit-btn" data-k="wanen">Wanen</button>
+      <button class="kignit-btn" data-k="ambasel">Ambasel</button>
+      <button class="kignit-btn" data-k="anchiHoye">Anchi Hoye</button>
+      <button class="kignit-btn" data-k="minorWanen">Minor Wanen</button>
+      <button class="kignit-btn" data-k="bati">Bati</button>
+    </div>
+
+    <div class="instrument-wrap" id="instrumentWrap">
+      <div class="ripple-container" id="rippleCont"></div>
+      <svg id="begenaSvg" viewBox="0 0 300 680" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="pilL" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stop-color="#180902"/><stop offset="35%" stop-color="#5c2e0e"/>
+            <stop offset="65%" stop-color="#7a3c14"/><stop offset="100%" stop-color="#2c1505"/>
+          </linearGradient>
+          <linearGradient id="pilR" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stop-color="#2c1505"/><stop offset="35%" stop-color="#7a3c14"/>
+            <stop offset="65%" stop-color="#5c2e0e"/><stop offset="100%" stop-color="#180902"/>
+          </linearGradient>
+          <linearGradient id="xbar" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#8b4a1e"/><stop offset="45%" stop-color="#c07840"/>
+            <stop offset="100%" stop-color="#4a1e08"/>
+          </linearGradient>
+          <radialGradient id="leath" cx="50%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#b85030"/><stop offset="55%" stop-color="#8a3010"/>
+            <stop offset="100%" stop-color="#3e1404"/>
+          </radialGradient>
+          <pattern id="carv" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+            <path d="M0,8 Q4,4 8,8 Q12,12 16,8" stroke="rgba(0,0,0,0.22)" stroke-width="1.4" fill="none"/>
+            <path d="M0,3 Q4,-1 8,3 Q12,7 16,3" stroke="rgba(0,0,0,0.12)" stroke-width="0.8" fill="none"/>
+            <path d="M0,13 Q4,9 8,13 Q12,17 16,13" stroke="rgba(0,0,0,0.12)" stroke-width="0.8" fill="none"/>
+          </pattern>
+          <filter id="sGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- pillars -->
+        <rect x="20" y="95" width="32" height="450" rx="4" fill="url(#pilL)"/>
+        <rect x="20" y="95" width="32" height="450" rx="4" fill="url(#carv)" opacity="0.5"/>
+        <rect x="248" y="95" width="32" height="450" rx="4" fill="url(#pilR)"/>
+        <rect x="248" y="95" width="32" height="450" rx="4" fill="url(#carv)" opacity="0.5"/>
+
+        <!-- finials left -->
+        <rect x="8" y="56" width="56" height="46" rx="6" fill="#2c1505"/>
+        <rect x="8" y="56" width="56" height="46" rx="6" fill="url(#carv)" opacity="0.9"/>
+        <rect x="14" y="62" width="20" height="20" rx="3" fill="#4a1e08"/>
+        <rect x="15" y="63" width="18" height="18" rx="2" fill="none" stroke="#c9922a" stroke-width="1.1" opacity="0.65"/>
+        <path d="M15,72 L24,63 L33,72 L24,81Z" fill="none" stroke="#c9922a" stroke-width="0.8" opacity="0.45"/>
+        <rect x="38" y="62" width="20" height="20" rx="3" fill="#4a1e08"/>
+        <rect x="39" y="63" width="18" height="18" rx="2" fill="none" stroke="#c9922a" stroke-width="1.1" opacity="0.65"/>
+        <path d="M39,72 L48,63 L57,72 L48,81Z" fill="none" stroke="#c9922a" stroke-width="0.8" opacity="0.45"/>
+        <path d="M10,57 Q36,26 62,57" fill="none" stroke="#5c2e0e" stroke-width="4"/>
+        <path d="M13,57 Q36,30 59,57" fill="none" stroke="#8b4a1e" stroke-width="2"/>
+        <path d="M9,58 Q3,51 9,45 Q17,39 22,48" fill="none" stroke="#7a3c14" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M63,58 Q69,51 63,45 Q55,39 50,48" fill="none" stroke="#7a3c14" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- finials right -->
+        <rect x="236" y="56" width="56" height="46" rx="6" fill="#2c1505"/>
+        <rect x="236" y="56" width="56" height="46" rx="6" fill="url(#carv)" opacity="0.9"/>
+        <rect x="242" y="62" width="20" height="20" rx="3" fill="#4a1e08"/>
+        <rect x="243" y="63" width="18" height="18" rx="2" fill="none" stroke="#c9922a" stroke-width="1.1" opacity="0.65"/>
+        <path d="M243,72 L252,63 L261,72 L252,81Z" fill="none" stroke="#c9922a" stroke-width="0.8" opacity="0.45"/>
+        <rect x="266" y="62" width="20" height="20" rx="3" fill="#4a1e08"/>
+        <rect x="267" y="63" width="18" height="18" rx="2" fill="none" stroke="#c9922a" stroke-width="1.1" opacity="0.65"/>
+        <path d="M267,72 L276,63 L285,72 L276,81Z" fill="none" stroke="#c9922a" stroke-width="0.8" opacity="0.45"/>
+        <path d="M238,57 Q264,26 290,57" fill="none" stroke="#5c2e0e" stroke-width="4"/>
+        <path d="M241,57 Q264,30 287,57" fill="none" stroke="#8b4a1e" stroke-width="2"/>
+        <path d="M237,58 Q231,51 237,45 Q245,39 250,48" fill="none" stroke="#7a3c14" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M291,58 Q297,51 291,45 Q283,39 278,48" fill="none" stroke="#7a3c14" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- crossbar -->
+        <rect x="20" y="90" width="260" height="20" rx="4" fill="url(#xbar)"/>
+        <rect x="20" y="90" width="260" height="20" rx="4" fill="url(#carv)" opacity="0.4"/>
+        <rect x="22" y="91" width="256" height="4" rx="2" fill="rgba(220,160,80,0.18)"/>
+
+        <!-- soundbox -->
+        <rect x="52" y="490" width="196" height="168" rx="6" fill="url(#leath)"/>
+        <rect x="52" y="490" width="196" height="168" rx="6" fill="none" stroke="#200a01" stroke-width="3"/>
+        <rect x="56" y="494" width="188" height="160" rx="4" fill="none" stroke="rgba(180,90,30,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+        <ellipse cx="150" cy="540" rx="78" ry="44" fill="rgba(220,120,50,0.07)"/>
+
+        <!-- birkuma bridge -->
+        <rect x="114" y="566" width="72" height="15" rx="3" fill="#2c1505"/>
+        <rect x="114" y="566" width="72" height="15" rx="3" fill="url(#xbar)" opacity="0.7"/>
+        <rect x="116" y="564" width="68" height="5" rx="2" fill="#8b4a1e"/>
+        <!-- birr leather pieces -->
+        <rect x="120" y="560" width="7" height="5" rx="1" fill="rgba(160,80,25,0.7)" stroke="rgba(80,30,5,0.5)" stroke-width="0.5"/>
+        <rect x="132" y="560" width="7" height="5" rx="1" fill="rgba(160,80,25,0.7)" stroke="rgba(80,30,5,0.5)" stroke-width="0.5"/>
+        <rect x="144" y="560" width="7" height="5" rx="1" fill="rgba(160,80,25,0.7)" stroke="rgba(80,30,5,0.5)" stroke-width="0.5"/>
+        <rect x="156" y="560" width="7" height="5" rx="1" fill="rgba(160,80,25,0.7)" stroke="rgba(80,30,5,0.5)" stroke-width="0.5"/>
+        <rect x="168" y="560" width="7" height="5" rx="1" fill="rgba(160,80,25,0.7)" stroke="rgba(80,30,5,0.5)" stroke-width="0.5"/>
+
+        <!-- tailpiece -->
+        <rect x="108" y="660" width="84" height="14" rx="3" fill="#c8a060"/>
+        <rect x="110" y="662" width="80" height="10" rx="2" fill="none" stroke="rgba(80,40,5,0.45)" stroke-width="1"/>
+        <circle cx="126" cy="669" r="1.8" fill="rgba(0,0,0,0.5)"/>
+        <circle cx="138" cy="669" r="1.8" fill="rgba(0,0,0,0.5)"/>
+        <circle cx="150" cy="669" r="1.8" fill="rgba(0,0,0,0.5)"/>
+        <circle cx="162" cy="669" r="1.8" fill="rgba(0,0,0,0.5)"/>
+        <circle cx="174" cy="669" r="1.8" fill="rgba(0,0,0,0.5)"/>
+
+        <!-- strings rendered by JS -->
+        <g id="stringsGroup"></g>
+        <g id="pegsGroup"></g>
+      </svg>
+
+      <div class="note-popup" id="notePopup">
+        <div class="np-note" id="npNote">—</div>
+        <div class="np-hz" id="npHz">— Hz</div>
+        <div class="np-str" id="npStr">String —</div>
+        <div class="np-name" id="npName"></div>
+      </div>
+    </div>
+  </div><!-- /playPage -->
+
+  <!-- ▶▶ TUNE PAGE ▶▶ -->
+  <div class="page" id="tunePage">
+    <div class="section-head" style="padding-top:16px;">
+      <h2 id="tuneTitle">Begena Tuner</h2>
+      <p id="tuneSubtitle">Select a Kignit, then a string to tune</p>
+      <div class="gold-line"><div class="gold-line-bar"></div><div class="gold-line-dia"></div><div class="gold-line-bar"></div></div>
+    </div>
+
+    <div class="tuner-kignit-bar" id="tunerKignitBar">
+      <button class="kignit-btn active" data-k="selamta">Selamta</button>
+      <button class="kignit-btn" data-k="wanen">Wanen</button>
+      <button class="kignit-btn" data-k="ambasel">Ambasel</button>
+      <button class="kignit-btn" data-k="anchiHoye">Anchi Hoye</button>
+      <button class="kignit-btn" data-k="minorWanen">Minor Wanen</button>
+      <button class="kignit-btn" data-k="bati">Bati</button>
+    </div>
+
+    <div class="tuner-string-list" id="tunerStringList"></div>
+
+    <div class="tuner-main">
+      <div class="tuner-title" id="tunerMainTitle">Select a string above — <span id="tunerTargetNote">—</span></div>
+
+      <div class="tuner-dial-wrap">
+        <canvas id="tunerDial" width="240" height="130"></canvas>
+      </div>
+
+      <div class="tuner-readout">
+        <div class="tr-box">
+          <div class="tr-label">DETECTED</div>
+          <div class="tr-val" id="detectedHz">— Hz</div>
+        </div>
+        <div class="tr-box">
+          <div class="tr-label">TARGET</div>
+          <div class="tr-val" id="targetHz">— Hz</div>
+        </div>
+        <div class="tr-box">
+          <div class="tr-label">STATUS</div>
+          <div class="tr-val" id="tuneStatus">—</div>
+        </div>
+      </div>
+
+      <div class="tuner-controls">
+        <button class="tuner-btn" id="listenBtn" onclick="toggleListening()">🎙 Start Listening</button>
+        <button class="tuner-btn" onclick="tunerSimulate()">⟳ Simulate</button>
+      </div>
+
+      <div class="tuner-ref-note">
+        <span class="ref-label" id="refLabel">Play reference pitch:</span>
+        <button class="play-ref-btn" onclick="playRefNote()">▶ Play Target Note</button>
+      </div>
+    </div>
+  </div><!-- /tunePage -->
+
+  <!-- ▶▶ LEARN PAGE ▶▶ -->
+  <div class="page" id="learnPage">
+    <div class="chapter-nav" id="chapterNav">
+      <div class="chapter-tab active" data-ch="0">Ch. 1 · History</div>
+      <div class="chapter-tab" data-ch="1">Ch. 2 · Anatomy</div>
+      <div class="chapter-tab" data-ch="2">Ch. 3 · Theory</div>
+      <div class="chapter-tab" data-ch="3">Ch. 4 · Technique</div>
+      <div class="chapter-tab" data-ch="4">Ch. 5 · Practice</div>
+    </div>
+
+    <!-- Chapter 1: History -->
+    <div class="chapter-content active" id="ch0">
+      <div class="chapter-head">
+        <div class="ch-number">CHAPTER ONE</div>
+        <div class="ch-title">History & Spiritual Purpose</div>
+        <div class="ch-subtitle">The Harp of King David in Ethiopia</div>
+        <div class="progress-bar-wrap" style="margin-top:10px;">
+          <div class="pb-label"><span>Chapter Progress</span><span>Reading...</span></div>
+          <div class="pb-track"><div class="pb-fill" style="width:20%"></div></div>
+        </div>
+      </div>
+      <div class="ch-body">
+        <span class="amharic">በገና — የዳዊት መሣሪያ</span>
+        <p>The Begena (በገና) is one of the world's most ancient lyre-type instruments, deeply embedded in Ethiopian Orthodox Christian tradition. Ethiopian oral history and religious texts identify it as the very instrument of King David — the biblical harp with which he composed the Psalms.</p>
+        <div class="quote">"When David played his Begena, the evil spirit left Saul" — Ethiopian interpretation of 1 Samuel 16:23, rendered in the Ge'ez tradition.</div>
+        <h3>Sacred Origins</h3>
+        <p>According to Ethiopian tradition, the Begena was brought to Ethiopia by Menelik I — son of King Solomon and the Queen of Sheba (Makeda) — along with the Ark of the Covenant. This origin story gives the instrument an almost unparalleled sacred status in Ethiopian culture.</p>
+        <p>Unlike most musical instruments used for entertainment or celebration, the Begena is primarily an instrument of <em>meditation and spiritual contemplation</em>. It is played during fasting periods, particularly during Tsome Filseta (the Assumption fast) and Tsome Nebiyat (Prophets' fast).</p>
+        <h3>Historical Context</h3>
+        <p>The instrument reached its height of cultural prominence in the 15th–17th centuries during the Solomonic dynasty. Court musicians (called <em>Begena players</em> or "Aleqa") held honored positions in the imperial court and monastery communities.</p>
+        <div class="info-card">
+          <div class="ic-title">🕯️ The Begena Today</div>
+          <div class="ic-body">The Begena is still played in Ethiopia today, particularly in Addis Ababa and the Amhara highlands. Master players such as Alemu Aga have brought the instrument to international attention, performing at UNESCO events and releasing acclaimed recordings. The instrument is considered a living link to Ethiopia's 3,000-year recorded history.</div>
+        </div>
+        <h3>Cultural Restrictions</h3>
+        <p>Traditionally, the Begena was not to be played for entertainment or in secular settings. Its sound — including the characteristic <em>birr</em> buzzing created by the leather pieces on the bridge — was said to represent the voice of God, and playing it casually was considered disrespectful.</p>
+      </div>
+    </div>
+
+    <!-- Chapter 2: Anatomy -->
+    <div class="chapter-content" id="ch1">
+      <div class="chapter-head">
+        <div class="ch-number">CHAPTER TWO</div>
+        <div class="ch-title">Anatomy of the Begena</div>
+        <div class="ch-subtitle">Ten strings, each with spiritual meaning</div>
+      </div>
+      <div class="anatomy-wrap">
+        <svg id="anatomySvg" viewBox="0 0 240 420" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="aLP" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0%" stop-color="#180902"/><stop offset="50%" stop-color="#5c2e0e"/><stop offset="100%" stop-color="#2c1505"/>
+            </linearGradient>
+            <radialGradient id="aLeath" cx="50%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#b85030"/><stop offset="100%" stop-color="#3e1404"/>
+            </radialGradient>
+          </defs>
+          <!-- pillars -->
+          <rect x="14" y="62" width="24" height="284" rx="3" fill="url(#aLP)"/>
+          <rect x="202" y="62" width="24" height="284" rx="3" fill="url(#aLP)"/>
+          <!-- finials -->
+          <rect x="6" y="36" width="40" height="32" rx="4" fill="#2c1505"/>
+          <rect x="194" y="36" width="40" height="32" rx="4" fill="#2c1505"/>
+          <path d="M8,37 Q26,18 44,37" fill="none" stroke="#5c2e0e" stroke-width="3"/>
+          <path d="M196,37 Q214,18 232,37" fill="none" stroke="#5c2e0e" stroke-width="3"/>
+          <!-- crossbar -->
+          <rect x="14" y="58" width="212" height="14" rx="3" fill="#8b4a1e"/>
+          <!-- soundbox -->
+          <rect x="40" y="310" width="160" height="100" rx="5" fill="url(#aLeath)"/>
+          <rect x="40" y="310" width="160" height="100" rx="5" fill="none" stroke="#200a01" stroke-width="2"/>
+          <!-- bridge -->
+          <rect x="86" y="344" width="68" height="11" rx="2" fill="#2c1505"/>
+          <rect x="88" y="342" width="64" height="4" rx="1" fill="#8b4a1e"/>
+          <!-- birr pieces -->
+          <rect x="92" y="339" width="6" height="4" rx="1" fill="rgba(160,80,25,0.8)"/>
+          <rect x="103" y="339" width="6" height="4" rx="1" fill="rgba(160,80,25,0.8)"/>
+          <rect x="114" y="339" width="6" height="4" rx="1" fill="rgba(160,80,25,0.8)"/>
+          <rect x="125" y="339" width="6" height="4" rx="1" fill="rgba(160,80,25,0.8)"/>
+          <rect x="136" y="339" width="6" height="4" rx="1" fill="rgba(160,80,25,0.8)"/>
+          <!-- tailpiece -->
+          <rect x="86" y="410" width="68" height="10" rx="2" fill="#c8a060"/>
+          <!-- strings -->
+          <line x1="66" y1="65" x2="100" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="0.8"/>
+          <line x1="80" y1="65" x2="108" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="0.9"/>
+          <line x1="94" y1="65" x2="116" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="1"/>
+          <line x1="108" y1="65" x2="124" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="1.1"/>
+          <line x1="120" y1="65" x2="132" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="1.2"/>
+          <line x1="132" y1="65" x2="140" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="1.3"/>
+          <line x1="144" y1="65" x2="148" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="1.4"/>
+          <line x1="156" y1="65" x2="156" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="1.5"/>
+          <line x1="168" y1="65" x2="164" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="1.6"/>
+          <line x1="180" y1="65" x2="172" y2="408" stroke="rgba(212,184,122,0.7)" stroke-width="1.7"/>
+          <!-- annotation dots -->
+          <circle cx="26" cy="180" r="5" fill="var(--gold)" opacity="0.9" id="adot0" class="anat-dot" data-part="0"/>
+          <circle cx="214" cy="180" r="5" fill="var(--gold)" opacity="0.9"/>
+          <circle cx="120" cy="65" r="5" fill="var(--gold)" opacity="0.9" id="adot1" class="anat-dot" data-part="1"/>
+          <circle cx="120" cy="348" r="5" fill="var(--gold)" opacity="0.9" id="adot2" class="anat-dot" data-part="2"/>
+          <circle cx="120" cy="415" r="5" fill="var(--gold)" opacity="0.9" id="adot3" class="anat-dot" data-part="3"/>
+          <circle cx="120" cy="260" r="5" fill="var(--gold)" opacity="0.9" id="adot4" class="anat-dot" data-part="4"/>
+          <!-- annotation lines -->
+          <line x1="31" y1="180" x2="56" y2="180" stroke="rgba(201,146,42,0.5)" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="125" y1="65" x2="160" y2="40" stroke="rgba(201,146,42,0.5)" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="125" y1="348" x2="160" y2="330" stroke="rgba(201,146,42,0.5)" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="125" y1="415" x2="160" y2="415" stroke="rgba(201,146,42,0.5)" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="125" y1="260" x2="175" y2="260" stroke="rgba(201,146,42,0.5)" stroke-width="1" stroke-dasharray="3,2"/>
+        </svg>
+        <div class="anatomy-labels" id="anatomyLabels">
+          <div class="anat-label" data-part="0">
+            <div class="al-name">Pillars (Teret)</div>
+            <div class="al-amh">ተረት</div>
+            <div class="al-desc">The two tall carved wooden columns that form the frame. Traditionally made from Wanza wood, they are carved with intricate geometric patterns and represent the two pillars of Solomon's Temple.</div>
+          </div>
+          <div class="anat-label" data-part="1">
+            <div class="al-name">Crossbar (Metek)</div>
+            <div class="al-amh">መጠቅ</div>
+            <div class="al-desc">The horizontal bar at the top connecting the two pillars. Tuning pegs (Quana) are inserted through this bar to hold and tension each of the 10 strings.</div>
+          </div>
+          <div class="anat-label" data-part="2">
+            <div class="al-name">Bridge (Birkuma)</div>
+            <div class="al-amh">ብርቁማ</div>
+            <div class="al-desc">The bridge sits on the face of the soundbox and is the source of the famous <em>birr</em> buzz. Small leather pieces (also called birr) rest loosely against the strings here, creating the characteristic buzzing timbre.</div>
+          </div>
+          <div class="anat-label" data-part="3">
+            <div class="al-name">Tailpiece</div>
+            <div class="al-amh">ጅራት</div>
+            <div class="al-desc">A strip of bone or hardwood at the base of the soundbox where all 10 strings are anchored. The string spacing is widest at the tailpiece.</div>
+          </div>
+          <div class="anat-label" data-part="4">
+            <div class="al-name">Strings (Awtar)</div>
+            <div class="al-amh">አውታር</div>
+            <div class="al-desc">Traditionally made from sheep or goat gut, the 10 strings fan from the crossbar down to the tailpiece. Each string (Awtar) has a spiritual name corresponding to one of the 10 Commandments.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter 3: Theory -->
+    <div class="chapter-content" id="ch2">
+      <div class="chapter-head">
+        <div class="ch-number">CHAPTER THREE</div>
+        <div class="ch-title">Music Theory & St. Yared</div>
+        <div class="ch-subtitle">The Ethiopian pentatonic tradition and Kignit scales</div>
+      </div>
+      <div class="ch-body">
+        <h3>Saint Yared & Ethiopian Sacred Music</h3>
+        <p>Ethiopian sacred music was codified by Saint Yared (505–571 AD), the legendary composer who is said to have received his musical knowledge from three birds sent from Paradise. He developed a notational system called <em>Zema</em> and established three primary musical modes which influenced all subsequent Ethiopian church music.</p>
+        <div class="quote">Saint Yared created three modes: Ge'ez (for ordinary time), Ezel (for fasting), and Araray (for feast days). The Begena operates primarily within the Ezel mode — music of fasting and reflection.</div>
+        <h3>The Kignit System</h3>
+        <p>Ethiopian music is organized around pentatonic scales called <em>Kignit</em> (ቅኝት). Unlike Western major/minor scales which use 7 notes, Kignit scales use 5 primary pitches with characteristic intervals that give Ethiopian music its distinctive sound.</p>
+      </div>
+
+      <div style="margin: 14px 0;">
+        <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;" id="theoryKignitBtns">
+          <button class="kignit-btn active" data-k="selamta" onclick="showTheoryScale(this,'selamta')">Selamta</button>
+          <button class="kignit-btn" data-k="wanen" onclick="showTheoryScale(this,'wanen')">Wanen</button>
+          <button class="kignit-btn" data-k="ambasel" onclick="showTheoryScale(this,'ambasel')">Ambasel</button>
+          <button class="kignit-btn" data-k="anchiHoye" onclick="showTheoryScale(this,'anchiHoye')">Anchi Hoye</button>
+          <button class="kignit-btn" data-k="minorWanen" onclick="showTheoryScale(this,'minorWanen')">Minor Wanen</button>
+          <button class="kignit-btn" data-k="bati" onclick="showTheoryScale(this,'bati')">Bati</button>
+        </div>
+        <table class="scale-table" id="scaleTable">
+          <thead>
+            <tr>
+              <th>String</th><th>Note</th><th>Frequency (Hz)</th><th>Character</th>
+            </tr>
+          </thead>
+          <tbody id="scaleTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="ch-body">
+        <h3>The Birr Effect — Acoustic Physics</h3>
+        <p>The most distinctive feature of Begena sound is the <em>birr</em> (ብር) buzz — a controlled, intentional rattling sound created by small leather pieces resting on the bridge (Birkuma). When a string vibrates, it causes these leather pieces to vibrate sympathetically, adding a complex overtone-rich buzz on top of the fundamental pitch.</p>
+        <p>This is acoustically similar to the <em>sitar jawari</em> effect or the <em>African mirliton</em> — but with spiritual significance: the buzz is said to represent the presence of the Holy Spirit in the sound.</p>
+      </div>
+    </div>
+
+    <!-- Chapter 4: Technique -->
+    <div class="chapter-content" id="ch3">
+      <div class="chapter-head">
+        <div class="ch-number">CHAPTER FOUR</div>
+        <div class="ch-title">Playing Technique</div>
+        <div class="ch-subtitle">Hand position, posture, and plucking method</div>
+      </div>
+      <div class="ch-body">
+        <h3>Holding the Begena</h3>
+        <p>The Begena is held vertically, resting on the player's lap or on a low stand, with the soundbox facing outward toward the listener. The instrument stands roughly the height of a seated adult.</p>
+        <h3>Hand Position</h3>
+        <p>Both hands are used. The right hand typically plucks the upper (higher-pitched) strings while the left hand manages the lower strings, though individual masters vary this technique.</p>
+      </div>
+      <div class="technique-grid">
+        <div class="technique-card">
+          <div class="tc-icon">🤚</div>
+          <div class="tc-title">Right Hand</div>
+          <div class="tc-desc">Index and middle fingers pluck strings with a downward-outward motion. The thumb may damp strings to control sustain. Higher strings (strings 6–10).</div>
+        </div>
+        <div class="technique-card">
+          <div class="tc-icon">✋</div>
+          <div class="tc-title">Left Hand</div>
+          <div class="tc-desc">Handles the bass strings (strings 1–5) with a similar plucking motion. The fingers approach from behind the strings, pushing forward and releasing.</div>
+        </div>
+        <div class="technique-card">
+          <div class="tc-icon">🧘</div>
+          <div class="tc-title">Posture</div>
+          <div class="tc-desc">The player sits cross-legged or on a low stool. The Begena leans slightly forward. Shoulders relaxed, arms free to move across the full string range.</div>
+        </div>
+        <div class="technique-card">
+          <div class="tc-icon">🎵</div>
+          <div class="tc-title">Plucking Style</div>
+          <div class="tc-desc">A single string is plucked and allowed to resonate fully before the next note. Rapid arpeggios across multiple strings are common in transitional passages.</div>
+        </div>
+      </div>
+      <div class="ch-body" style="margin-top:14px;">
+        <h3>Vocal Accompaniment</h3>
+        <p>The Begena traditionally accompanies meditative <em>poetry and psalm recitation</em>. The player sings or chants in a low, resonant voice — often intoning Ge'ez scripture — while the Begena provides a continuous harmonic and rhythmic foundation.</p>
+        <div class="quote">"The voice and the Begena are inseparable. The instrument speaks; the voice answers." — Traditional teaching</div>
+        <h3>Damping Technique</h3>
+        <p>Because the Begena's strings sustain for several seconds, players use active damping — pressing lightly against a string with the flat of the finger — to control which pitches resonate simultaneously. This creates the characteristic layered, reverberant texture of Begena music.</p>
+      </div>
+    </div>
+
+    <!-- Chapter 5: Practice -->
+    <div class="chapter-content" id="ch4">
+      <div class="chapter-head">
+        <div class="ch-number">CHAPTER FIVE</div>
+        <div class="ch-title">Interactive Practice</div>
+        <div class="ch-subtitle">Follow the falling notes — pluck at the right moment</div>
+      </div>
+
+      <div class="practice-wrap">
+        <div class="practice-song-select" id="practiceSongSelect">
+          <button class="song-btn active" data-song="0" onclick="selectSong(this,0)">Begena Aleqa (Intro)</button>
+          <button class="song-btn" data-song="1" onclick="selectSong(this,1)">Selamta Pattern</button>
+          <button class="song-btn" data-song="2" onclick="selectSong(this,2)">Meditation Phrase</button>
+        </div>
+
+        <div class="practice-stage">
+          <div class="falling-area" id="fallingArea">
+            <!-- string columns -->
+            <div id="stringCols"></div>
+          </div>
+          <div class="hit-zone" id="hitZone"></div>
+          <div class="practice-controls">
+            <button class="prac-btn" id="pracStartBtn" onclick="startPractice()">▶ Start</button>
+            <button class="prac-btn secondary" onclick="stopPractice()">■ Stop</button>
+            <button class="prac-btn secondary" onclick="resetScore()">↺ Reset</button>
+            <div class="score-box">Score: <span id="scoreVal">0</span> | Combo: <span id="comboVal">0</span>✕</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /learnPage -->
+
+</div><!-- /pages -->
+
+<!-- ══ BOTTOM NAV ══ -->
+<nav class="bottom-nav">
+  <button class="nav-tab active" id="tabPlay" onclick="switchTab('play')">
+    <span class="nav-icon">🎵</span>Play
+  </button>
+  <button class="nav-tab" id="tabTune" onclick="switchTab('tune')">
+    <span class="nav-icon">🎙</span>Tune
+  </button>
+  <button class="nav-tab" id="tabLearn" onclick="switchTab('learn')">
+    <span class="nav-icon">📖</span>Learn
+  </button>
+</nav>
+
+<script>
+/* ══════════════════════════════════════════════════════════════ DATA */
+const KIGNITS = {
+  selamta:    { name:"Selamta",     notes:[
+    {note:"E2",hz:82.4,  char:"Grounding bass"},
+    {note:"A2",hz:110.0, char:"Open resonance"},
+    {note:"B2",hz:123.5, char:"Meditative"},
+    {note:"D3",hz:146.8, char:"Yearning"},
+    {note:"E3",hz:164.8, char:"Prayer"},
+    {note:"F#3",hz:185.0,char:"Rising"},
+    {note:"A3",hz:220.0, char:"Celestial"},
+    {note:"B3",hz:246.9, char:"Ascending"},
+    {note:"D4",hz:293.7, char:"Peak longing"},
+    {note:"E4",hz:329.6, char:"Transcendence"},
+  ]},
+  wanen:      { name:"Wanen (Tizita)", notes:[
+    {note:"D2",hz:73.4,  char:"Ancient longing"},
+    {note:"F2",hz:87.3,  char:"Modal darkness"},
+    {note:"G2",hz:98.0,  char:"Grounded sadness"},
+    {note:"A2",hz:110.0, char:"Open sorrow"},
+    {note:"C3",hz:130.8, char:"Lament"},
+    {note:"D3",hz:146.8, char:"Memory"},
+    {note:"F3",hz:174.6, char:"Ache"},
+    {note:"G3",hz:196.0, char:"Nostalgia"},
+    {note:"A3",hz:220.0, char:"Acceptance"},
+    {note:"C4",hz:261.6, char:"Resolution"},
+  ]},
+  ambasel:    { name:"Ambasel", notes:[
+    {note:"E2",hz:82.4,  char:"Mountain base"},
+    {note:"G2",hz:98.0,  char:"Minor lift"},
+    {note:"A2",hz:110.0, char:"Open plain"},
+    {note:"B2",hz:123.5, char:"Highland"},
+    {note:"D3",hz:146.8, char:"Wind"},
+    {note:"E3",hz:164.8, char:"Peak"},
+    {note:"G3",hz:196.0, char:"Echo"},
+    {note:"A3",hz:220.0, char:"Vast"},
+    {note:"B3",hz:246.9, char:"Soaring"},
+    {note:"D4",hz:293.7, char:"Freedom"},
+  ]},
+  anchiHoye:  { name:"Anchi Hoye", notes:[
+    {note:"C2",hz:65.4,  char:"Deep call"},
+    {note:"D2",hz:73.4,  char:"Response"},
+    {note:"F2",hz:87.3,  char:"Yearning"},
+    {note:"G2",hz:98.0,  char:"Declaration"},
+    {note:"A2",hz:110.0, char:"Brightness"},
+    {note:"C3",hz:130.8, char:"High call"},
+    {note:"D3",hz:146.8, char:"Answer"},
+    {note:"F3",hz:174.6, char:"Joy"},
+    {note:"G3",hz:196.0, char:"Celebration"},
+    {note:"A3",hz:220.0, char:"Resolution"},
+  ]},
+  minorWanen: { name:"Minor Wanen", notes:[
+    {note:"D2",hz:73.4,  char:"Depth"},
+    {note:"E2",hz:82.4,  char:"Tension"},
+    {note:"F2",hz:87.3,  char:"Shadow"},
+    {note:"A2",hz:110.0, char:"Sorrow"},
+    {note:"Bb2",hz:116.5,char:"Dissonance"},
+    {note:"D3",hz:146.8, char:"Reflection"},
+    {note:"E3",hz:164.8, char:"Inner pain"},
+    {note:"F3",hz:174.6, char:"Dark beauty"},
+    {note:"A3",hz:220.0, char:"Mourning"},
+    {note:"Bb3",hz:233.1,char:"Release"},
+  ]},
+  bati:       { name:"Bati", notes:[
+    {note:"E2",hz:82.4,  char:"Festive ground"},
+    {note:"G2",hz:98.0,  char:"Dance"},
+    {note:"A2",hz:110.0, char:"Rhythm"},
+    {note:"C3",hz:130.8, char:"Lilt"},
+    {note:"D3",hz:146.8, char:"Swing"},
+    {note:"E3",hz:164.8, char:"Joy"},
+    {note:"G3",hz:196.0, char:"Celebration"},
+    {note:"A3",hz:220.0, char:"Happiness"},
+    {note:"C4",hz:261.6, char:"Brightness"},
+    {note:"D4",hz:293.7, char:"Completion"},
+  ]},
+};
+
+const STRING_NAMES_EN = ["String 1","String 2","String 3","String 4","String 5","String 6","String 7","String 8","String 9","String 10"];
+const STRING_NAMES_AM = ["አውታር ፩","አውታር ፪","አውታር ፫","አውታር ፬","አውታር ፭","አውታር ፮","አውታር ፯","አውታር ፰","አውታር ፱","አውታር ፲"];
+
+// Practice songs (string indices 0-9, timing in ms)
+const SONGS = [
+  // Begena Aleqa intro - slow arpeggios
+  [0,1,2,3,4,3,2,1,0,2,4,6,8,9,8,6,4,2,0,1,2,3,4,5,6,7,8,9],
+  // Selamta pattern
+  [0,2,4,2,0,1,3,5,3,1,2,4,6,4,2,3,5,7,5,3,4,6,8,6,4,5,7,9],
+  // Meditation phrase
+  [4,3,2,1,0,1,2,3,4,5,6,5,4,3,2,3,4,5,6,7,8,7,6,5,4,5,6,7,8,9],
+];
+
+let activeLang = 'en';
+let activeKignit = 'selamta';
+
+/* ══════════════════════════════════════════════════════════════ LANGUAGE */
+function toggleLang() {
+  activeLang = activeLang === 'en' ? 'am' : 'en';
+  document.getElementById('langToggle').textContent = activeLang === 'en' ? 'EN / አማ' : 'አማ / EN';
+}
+
+/* ══════════════════════════════════════════════════════════════ TAB NAV */
+function switchTab(tab) {
+  ['play','tune','learn'].forEach(t => {
+    document.getElementById(t+'Page').classList.toggle('active', t===tab);
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
+  });
+  if (tab==='tune') renderTunerStrings();
+}
+
+/* ══════════════════════════════════════════════════════════════ AUDIO */
+const AC = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AC();
+  if (audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(hz, dur=4.0, vol=0.6, birr=true) {
+  const ac = ensureAudio(), now = ac.currentTime;
+  const master = ac.createGain();
+  master.gain.setValueAtTime(vol, now);
+  master.connect(ac.destination);
+
+  const lp = ac.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(Math.min(1200, 600 + hz*2.2), now);
+  lp.Q.setValueAtTime(1.8, now);
+  lp.connect(master);
+
+  // Fundamental (triangle = warm pluck)
+  const o1 = ac.createOscillator(), g1 = ac.createGain();
+  o1.type = 'triangle'; o1.frequency.setValueAtTime(hz, now);
+  o1.detune.setValueAtTime(-6, now);
+  g1.gain.setValueAtTime(0,now);
+  g1.gain.linearRampToValueAtTime(0.6, now+0.01);
+  g1.gain.exponentialRampToValueAtTime(0.18, now+0.6);
+  g1.gain.exponentialRampToValueAtTime(0.001, now+dur);
+  o1.connect(g1); g1.connect(lp);
+  o1.start(now); o1.stop(now+dur);
+
+  // 2nd harmonic
+  const o2 = ac.createOscillator(), g2 = ac.createGain();
+  o2.type = 'sine'; o2.frequency.setValueAtTime(hz*2.01, now);
+  g2.gain.setValueAtTime(0.18,now); g2.gain.exponentialRampToValueAtTime(0.001, now+dur*0.5);
+  o2.connect(g2); g2.connect(lp); o2.start(now); o2.stop(now+dur);
+
+  // Birr buzz
+  if (birr) {
+    const ob = ac.createOscillator(), gb = ac.createGain();
+    ob.type = 'sawtooth'; ob.frequency.setValueAtTime(hz*1.006, now);
+    gb.gain.setValueAtTime(0.07,now); gb.gain.exponentialRampToValueAtTime(0.001, now+1.0);
+    ob.connect(gb); gb.connect(lp); ob.start(now); ob.stop(now+1.0);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════ PLAY MODULE */
+const SC = 10;
+const topX = (i) => 74 + i*(152/9);
+const botX = (i) => 110 + i*(60/9);
+const topY = 104, botY = 658;
+
+let npTimeout = null;
+
+function renderStrings() {
+  const sg = document.getElementById('stringsGroup');
+  const pg = document.getElementById('pegsGroup');
+  if (!sg||!pg) return;
+  sg.innerHTML = ''; pg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  const kd = KIGNITS[activeKignit].notes;
+
+  for (let i=0;i<SC;i++) {
+    const tx = topX(i), bx = botX(i);
+    const thk = 0.85 + (SC-1-i)/(SC-1)*1.4;
+
+    // Peg
+    const peg = document.createElementNS(ns,'rect');
+    peg.setAttribute('x', tx-4); peg.setAttribute('y','91');
+    peg.setAttribute('width','8'); peg.setAttribute('height','13');
+    peg.setAttribute('rx','2'); peg.setAttribute('fill','#c8a060');
+    peg.setAttribute('stroke','#5c2e0e'); peg.setAttribute('stroke-width','0.5');
+    pg.appendChild(peg);
+
+    // Shadow
+    const sh = document.createElementNS(ns,'line');
+    sh.setAttribute('x1',tx+1.2); sh.setAttribute('y1',topY);
+    sh.setAttribute('x2',bx+1.2); sh.setAttribute('y2',botY);
+    sh.setAttribute('stroke','rgba(0,0,0,0.3)'); sh.setAttribute('stroke-width',thk+1);
+    sg.appendChild(sh);
+
+    // Hit group
+    const g = document.createElementNS(ns,'g');
+    g.setAttribute('class','string-hit'); g.setAttribute('data-i',i);
+
+    const hit = document.createElementNS(ns,'line');
+    hit.setAttribute('x1',tx); hit.setAttribute('y1',topY-10);
+    hit.setAttribute('x2',bx); hit.setAttribute('y2',botY+10);
+    hit.setAttribute('stroke','transparent'); hit.setAttribute('stroke-width','20');
+
+    const line = document.createElementNS(ns,'line');
+    line.setAttribute('id','str'+i);
+    line.setAttribute('x1',tx); line.setAttribute('y1',topY);
+    line.setAttribute('x2',bx); line.setAttribute('y2',botY);
+    const r=160+i*8, gg=132+i*5, b=72+i*3;
+    line.setAttribute('stroke',`rgba(${r},${gg},${b},0.85)`);
+    line.setAttribute('stroke-width',thk);
+    line.setAttribute('stroke-linecap','round');
+
+    g.appendChild(hit); g.appendChild(line);
+    sg.appendChild(g);
+
+    function pluck(e) {
+      e.preventDefault();
+      doPluck(i, tx, bx, line, kd[i]);
+    }
+    g.addEventListener('mousedown', pluck);
+    g.addEventListener('touchstart', pluck, {passive:false});
+  }
+}
+
+function doPluck(i, tx, bx, lineEl, nd) {
+  playTone(nd.hz);
+  // Glow
+  lineEl.setAttribute('stroke','#f0d090');
+  lineEl.setAttribute('filter','url(#sGlow)');
+  lineEl.setAttribute('stroke-width','2.8');
+  setTimeout(()=>{
+    const r=160+i*8, g=132+i*5, b=72+i*3;
+    lineEl.setAttribute('stroke',`rgba(${r},${g},${b},0.85)`);
+    lineEl.removeAttribute('filter');
+    lineEl.setAttribute('stroke-width', 0.85+(SC-1-i)/(SC-1)*1.4 );
+  }, 380);
+
+  // Ripple
+  const wrap = document.getElementById('instrumentWrap');
+  const svgEl = document.getElementById('begenaSvg');
+  const rect = svgEl.getBoundingClientRect();
+  const sx = rect.left + (tx*0.4+bx*0.6)*(rect.width/300);
+  const sy = rect.top  + (topY+(botY-topY)*0.45)*(rect.height/680);
+  const rip = document.createElement('div');
+  rip.className='ripple';
+  rip.style.left = (sx - rect.left)+'px';
+  rip.style.top  = (sy - rect.top)+'px';
+  document.getElementById('rippleCont').appendChild(rip);
+  setTimeout(()=>rip.remove(),800);
+
+  // Note popup
+  document.getElementById('npNote').textContent = nd.note;
+  document.getElementById('npHz').textContent   = nd.hz.toFixed(1)+' Hz';
+  document.getElementById('npStr').textContent  = activeLang==='en'?STRING_NAMES_EN[i]:STRING_NAMES_AM[i];
+  document.getElementById('npName').textContent = nd.char;
+  document.getElementById('notePopup').classList.add('show');
+  clearTimeout(npTimeout);
+  npTimeout = setTimeout(()=>document.getElementById('notePopup').classList.remove('show'), 2000);
+}
+
+// Kignit bars (play page)
+document.getElementById('kignitBar').addEventListener('click', e=>{
+  const btn = e.target.closest('.kignit-btn'); if(!btn) return;
+  document.querySelectorAll('#kignitBar .kignit-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeKignit = btn.dataset.k;
+  renderStrings();
+});
+
+/* ══════════════════════════════════════════════════════════════ TUNER MODULE */
+let tunerKignit = 'selamta';
+let tunerString = 0;
+let tunerListening = false;
+let tunerInterval = null;
+let simInterval = null;
+let micStream = null;
+let analyserNode = null;
+
+function renderTunerStrings() {
+  const list = document.getElementById('tunerStringList');
+  if(!list) return;
+  list.innerHTML = '';
+  KIGNITS[tunerKignit].notes.forEach((n,i)=>{
+    const d = document.createElement('div');
+    d.className = 'tuner-string-card' + (i===tunerString?' selected':'');
+    d.innerHTML = `<div class="tsc-num">S${i+1}</div>
+      <div class="tsc-note">${n.note}</div>
+      <div class="tsc-hz">${n.hz.toFixed(1)}</div>
+      <div class="tsc-status"><div class="tsc-bar" id="tsb${i}" style="width:50%"></div></div>`;
+    d.onclick = ()=>{ tunerString=i; renderTunerStrings(); updateTunerDisplay(); };
+    list.appendChild(d);
+  });
+  updateTunerDisplay();
+}
+
+function updateTunerDisplay() {
+  const nd = KIGNITS[tunerKignit].notes[tunerString];
+  document.getElementById('tunerMainTitle').innerHTML = `String ${tunerString+1} — <span>${nd.note}</span>`;
+  document.getElementById('tunerTargetNote').textContent = nd.note;
+  document.getElementById('targetHz').textContent = nd.hz.toFixed(1)+' Hz';
+  drawDial(0);
+}
+
+document.getElementById('tunerKignitBar').addEventListener('click', e=>{
+  const btn = e.target.closest('.kignit-btn'); if(!btn) return;
+  document.querySelectorAll('#tunerKignitBar .kignit-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  tunerKignit = btn.dataset.k;
+  renderTunerStrings();
+});
+
+function drawDial(cents) {
+  const canvas = document.getElementById('tunerDial');
+  const ctx = canvas.getContext('2d');
+  const W=240, H=130;
+  ctx.clearRect(0,0,W,H);
+
+  // Arc background
+  ctx.beginPath();
+  ctx.arc(120,130,100,-Math.PI*1.1,-Math.PI*0.05,false);
+  ctx.strokeStyle='rgba(201,146,42,0.12)'; ctx.lineWidth=18; ctx.stroke();
+
+  // Zone coloring
+  const zones = [{c:-30,e:-10,col:'rgba(100,170,230,0.4)'},{c:-10,e:10,col:'rgba(120,200,90,0.5)'},{c:10,e:30,col:'rgba(230,120,90,0.4)'}];
+  zones.forEach(z=>{
+    const sa=-Math.PI*1.1+(z.c+50)/100*Math.PI*1.05;
+    const ea=-Math.PI*1.1+(z.e+50)/100*Math.PI*1.05;
+    ctx.beginPath(); ctx.arc(120,130,100,sa,ea,false);
+    ctx.strokeStyle=z.col; ctx.lineWidth=18; ctx.stroke();
+  });
+
+  // Tick marks
+  for(let t=-40;t<=40;t+=10){
+    const ang = -Math.PI*1.1+(t+50)/100*Math.PI*1.05;
+    const r0=86, r1=t===0?76:80;
+    ctx.beginPath();
+    ctx.moveTo(120+r0*Math.cos(ang), 130+r0*Math.sin(ang));
+    ctx.lineTo(120+r1*Math.cos(ang), 130+r1*Math.sin(ang));
+    ctx.strokeStyle = t===0?'rgba(201,146,42,0.9)':'rgba(201,146,42,0.35)';
+    ctx.lineWidth = t===0?2.5:1; ctx.stroke();
+  }
+
+  // Labels
+  ctx.font='10px JetBrains Mono,monospace'; ctx.fillStyle='rgba(201,146,42,0.6)'; ctx.textAlign='center';
+  [-40,-20,0,20,40].forEach(t=>{
+    const ang=-Math.PI*1.1+(t+50)/100*Math.PI*1.05;
+    ctx.fillText(t===0?'♦':(t>0?'+'+t:t), 120+72*Math.cos(ang), 130+72*Math.sin(ang)+4);
+  });
+
+  // Needle
+  const clamped = Math.max(-48, Math.min(48, cents));
+  const needleAng = -Math.PI*1.1+(clamped+50)/100*Math.PI*1.05;
+  ctx.beginPath();
+  ctx.moveTo(120,130);
+  ctx.lineTo(120+88*Math.cos(needleAng), 130+88*Math.sin(needleAng));
+  const col = Math.abs(cents)<8?'#7ec87a':cents>0?'#e87a5a':'#7ab8e8';
+  ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.stroke();
+
+  // Center dot
+  ctx.beginPath(); ctx.arc(120,130,5,0,Math.PI*2);
+  ctx.fillStyle='#c9922a'; ctx.fill();
+
+  // IN TUNE indicator
+  if(Math.abs(cents)<8){
+    ctx.font='bold 12px Playfair Display,serif'; ctx.fillStyle='#7ec87a'; ctx.textAlign='center';
+    ctx.fillText('✓ IN TUNE', 120, 112);
+  }
+}
+
+function setTunerReading(detHz) {
+  const target = KIGNITS[tunerKignit].notes[tunerString].hz;
+  const cents = 1200 * Math.log2(detHz / target);
+  drawDial(cents);
+  document.getElementById('detectedHz').textContent = detHz.toFixed(1)+' Hz';
+  const statusEl = document.getElementById('tuneStatus');
+  const detEl = document.getElementById('detectedHz');
+  if(Math.abs(cents)<8){ statusEl.textContent='IN TUNE ✓'; statusEl.className='tr-val in-tune'; detEl.className='tr-val in-tune'; }
+  else if(cents>0){ statusEl.textContent=`+${cents.toFixed(0)}¢ SHARP`; statusEl.className='tr-val sharp'; detEl.className='tr-val sharp'; }
+  else { statusEl.textContent=`${cents.toFixed(0)}¢ FLAT`; statusEl.className='tr-val flat'; detEl.className='tr-val flat'; }
+  // Update string card bar
+  const bar = document.getElementById('tsb'+tunerString);
+  if(bar){ const pct = 50 + (cents/50)*40; bar.style.width=Math.max(5,Math.min(95,pct))+'%'; bar.style.background=Math.abs(cents)<8?'#7ec87a':cents>0?'#e87a5a':'#7ab8e8'; }
+}
+
+async function toggleListening() {
+  const btn = document.getElementById('listenBtn');
+  if(tunerListening) {
+    tunerListening=false;
+    if(simInterval){ clearInterval(simInterval); simInterval=null; }
+    if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
+    btn.textContent='🎙 Start Listening'; btn.classList.remove('listening');
+    drawDial(0);
+  } else {
+    tunerListening=true;
+    btn.textContent='⏹ Stop'; btn.classList.add('listening');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      micStream = stream;
+      const ac = ensureAudio();
+      const src = ac.createMediaStreamSource(stream);
+      const analyser = ac.createAnalyser();
+      analyser.fftSize=4096; analyser.smoothingTimeConstant=0.85;
+      src.connect(analyser);
+      const buf = new Float32Array(analyser.fftSize);
+      analyserNode = analyser;
+      function tick(){
+        if(!tunerListening) return;
+        analyser.getFloatTimeDomainData(buf);
+        const hz = yinPitch(buf, ac.sampleRate);
+        if(hz>50 && hz<600) setTunerReading(hz);
+        requestAnimationFrame(tick);
+      }
+      tick();
+    } catch(err) {
+      // Mic denied — fall to simulation
+      tunerSimulate();
+    }
+  }
+}
+
+// YIN pitch detection (simplified)
+function yinPitch(buf, sr) {
+  const minP=Math.floor(sr/600), maxP=Math.floor(sr/50);
+  const diff=new Float32Array(maxP);
+  for(let tau=1;tau<maxP;tau++){
+    let s=0; for(let i=0;i<maxP;i++){ const d=buf[i]-buf[i+tau]; s+=d*d; }
+    diff[tau]=s;
+  }
+  let cumNorm=new Float32Array(maxP); cumNorm[0]=1; let runSum=0;
+  for(let tau=1;tau<maxP;tau++){ runSum+=diff[tau]; cumNorm[tau]=diff[tau]/(runSum/tau)||1; }
+  let tau=minP;
+  while(tau<maxP){ if(cumNorm[tau]<0.15){ while(tau+1<maxP&&cumNorm[tau+1]<cumNorm[tau]) tau++; break; } tau++; }
+  return tau===maxP?-1:sr/tau;
+}
+
+function tunerSimulate() {
+  if(simInterval) clearInterval(simInterval);
+  const target = KIGNITS[tunerKignit].notes[tunerString].hz;
+  let off = (Math.random()-0.5)*60;
+  simInterval = setInterval(()=>{
+    off += (Math.random()-0.5)*6;
+    off *= 0.88;
+    const hz = target * Math.pow(2, off/1200);
+    setTunerReading(hz);
+  }, 120);
+  setTimeout(()=>{ if(simInterval){clearInterval(simInterval);simInterval=null;} drawDial(0); }, 5000);
+}
+
+function playRefNote() {
+  const nd = KIGNITS[tunerKignit].notes[tunerString];
+  playTone(nd.hz, 3.0, 0.5, false);
+}
+
+/* ══════════════════════════════════════════════════════════════ LEARN MODULE */
+document.getElementById('chapterNav').addEventListener('click', e=>{
+  const tab = e.target.closest('.chapter-tab'); if(!tab) return;
+  const ch = tab.dataset.ch;
+  document.querySelectorAll('.chapter-tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('.chapter-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('ch'+ch).classList.add('active');
+});
+
+// Anatomy labels
+document.querySelectorAll('.anat-label').forEach(lbl=>{
+  lbl.addEventListener('click',()=>{
+    document.querySelectorAll('.anat-label').forEach(l=>l.classList.remove('active'));
+    lbl.classList.add('active');
+  });
+});
+
+// Theory scale table
+function showTheoryScale(btn, k) {
+  document.querySelectorAll('#theoryKignitBtns .kignit-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const tbody = document.getElementById('scaleTableBody');
+  tbody.innerHTML = '';
+  KIGNITS[k].notes.forEach((n,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td><td class="note-cell">${n.note}</td><td class="hz-cell">${n.hz.toFixed(1)}</td><td>${n.char}</td>`;
+    tbody.appendChild(tr);
+    tr.style.cursor='pointer';
+    tr.addEventListener('click',()=>playTone(n.hz,2,0.4));
+  });
+}
+// Init theory table
+showTheoryScale(document.querySelector('#theoryKignitBtns .kignit-btn'), 'selamta');
+
+/* ══════════════════════════════════════════════════════════════ PRACTICE MODULE */
+let currentSong = 0;
+let practiceRunning = false;
+let practiceTimer = null;
+let noteQueue = [];
+let score = 0, combo = 0;
+let noteIdx = 0;
+
+function buildPracticeUI() {
+  const hitZone = document.getElementById('hitZone');
+  const cols = document.getElementById('stringCols');
+  hitZone.innerHTML=''; cols.innerHTML='';
+  for(let i=0;i<10;i++){
+    const col=document.createElement('div');
+    col.className='string-col'; col.style.left=(i*10)+'%'; cols.appendChild(col);
+    const btn=document.createElement('button');
+    btn.className='hit-btn'; btn.id='hb'+i; btn.textContent=i+1;
+    btn.addEventListener('mousedown',()=>hitString(i));
+    btn.addEventListener('touchstart',e=>{e.preventDefault();hitString(i);},{passive:false});
+    hitZone.appendChild(btn);
+  }
+}
+
+function selectSong(btn, idx) {
+  stopPractice();
+  document.querySelectorAll('.song-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSong=idx;
+}
+
+function startPractice() {
+  stopPractice();
+  practiceRunning=true;
+  noteIdx=0;
+  document.getElementById('pracStartBtn').textContent='▶ Playing...';
+  const song = SONGS[currentSong];
+  const kd = KIGNITS[activeKignit].notes;
+
+  function spawnNote() {
+    if(!practiceRunning) return;
+    if(noteIdx >= song.length){ practiceRunning=false; document.getElementById('pracStartBtn').textContent='▶ Start'; return; }
+    const si = song[noteIdx]; noteIdx++;
+    const nd = kd[si];
+    const fa = document.getElementById('fallingArea');
+    if(!fa) return;
+    const n = document.createElement('div');
+    n.className='falling-note';
+    const h=182+Math.random()*12; // vary hue slightly
+    n.style.background=`hsl(${h},55%,55%)`;
+    n.style.left=(si*10+1)+'%';
+    n.style.fontSize='11px';
+    n.textContent=nd.note;
+    n.dataset.str=si;
+    const dur = 1400+Math.random()*200;
+    n.style.animation=`fall ${dur}ms linear forwards`;
+    fa.appendChild(n);
+    noteQueue.push({el:n, str:si, hz:nd.hz, deadline: Date.now()+dur});
+    setTimeout(()=>n.remove(), dur+200);
+
+    const gap = 600 + Math.random()*400;
+    practiceTimer = setTimeout(spawnNote, gap);
+  }
+  spawnNote();
+}
+
+function stopPractice() {
+  practiceRunning=false;
+  clearTimeout(practiceTimer);
+  noteQueue=[];
+  document.getElementById('pracStartBtn').textContent='▶ Start';
+  document.querySelectorAll('.falling-note').forEach(n=>n.remove());
+}
+
+function resetScore() { score=0; combo=0; updateScore(); }
+function updateScore() {
+  document.getElementById('scoreVal').textContent=score;
+  document.getElementById('comboVal').textContent=combo;
+}
+
+function hitString(i) {
+  ensureAudio();
+  const kd = KIGNITS[activeKignit].notes;
+  playTone(kd[i].hz, 1.5, 0.5);
+  // Flash btn
+  const btn = document.getElementById('hb'+i); if(!btn) return;
+  btn.classList.add('lit'); setTimeout(()=>btn.classList.remove('lit'),150);
+  // Check if any falling note matches
+  const now = Date.now();
+  const idx = noteQueue.findIndex(n=>n.str===i && Math.abs(n.deadline - now)<500);
+  if(idx>=0){
+    noteQueue[idx].el.style.opacity='0'; noteQueue.splice(idx,1);
+    combo++; score+=10*combo; btn.classList.add('correct'); setTimeout(()=>btn.classList.remove('correct'),300);
+  } else {
+    combo=0; btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),300);
+  }
+  updateScore();
+}
+
+/* ══════════════════════════════════════════════════════════════ INIT */
+renderStrings();
+buildPracticeUI();
+drawDial(0);
+
+// Init tuner (lazy on tab switch)
+</script>
+</body>
+</html>

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Begena</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Noto+Serif+Ethiopic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #1a1008;
+  --wood-dark: #2c1505;
+  --wood-mid: #5c2e0e;
+  --wood-light: #8b4a1e;
+  --leather: #7a2e0a;
+  --leather-light: #a0401a;
+  --gold: #c9922a;
+  --gold-light: #e8b84b;
+  --string-color: #d4b87a;
+  --string-glow: #f0d090;
+  --parchment: #f5e8c8;
+  --cream: #fdf6e8;
+}
+
+body {
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: 'Playfair Display', Georgia, serif;
+  user-select: none;
+  overflow-x: hidden;
+  padding-bottom: 40px;
+}
+
+/* ── background texture ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(100,50,10,0.18) 0%, transparent 70%),
+    repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(255,255,255,0.012) 80px, rgba(255,255,255,0.012) 81px);
+  pointer-events: none;
+}
+
+/* ── header ── */
+.header {
+  text-align: center;
+  padding: 28px 20px 10px;
+  position: relative;
+  z-index: 10;
+}
+.header-label {
+  font-family: 'Noto Serif Ethiopic', serif;
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+  opacity: 0.85;
+}
+.header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--parchment);
+  letter-spacing: 1px;
+}
+.header h1 span { color: var(--gold-light); }
+
+/* ── kignit selector ── */
+.kignit-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 16px 20px 0;
+  position: relative;
+  z-index: 10;
+}
+.kignit-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(201,146,42,0.3);
+  color: var(--gold);
+  font-family: 'Playfair Display', serif;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+.kignit-btn:hover { background: rgba(201,146,42,0.15); border-color: var(--gold); }
+.kignit-btn.active {
+  background: var(--gold);
+  color: var(--wood-dark);
+  border-color: var(--gold-light);
+  font-weight: 700;
+}
+
+/* ── instrument wrapper ── */
+.instrument-wrap {
+  position: relative;
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 5;
+}
+
+/* ── SVG canvas ── */
+#begena-svg {
+  width: min(420px, 95vw);
+  height: auto;
+  filter: drop-shadow(0 20px 60px rgba(0,0,0,0.7));
+  cursor: default;
+}
+
+/* ── string hit zones ── */
+.string-hit {
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+.string-hit:hover .string-line { stroke: var(--string-glow); filter: url(#glow); }
+
+/* ── pluck animation ── */
+@keyframes pluck {
+  0%   { d: path(''); opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.vibrating {
+  animation: vibrate 0.08s ease-in-out 6 alternate;
+}
+@keyframes vibrate {
+  0%   { transform: translateX(-3px); }
+  100% { transform: translateX(3px); }
+}
+
+/* ── note display ── */
+.note-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(20, 8, 2, 0.88);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 10px 18px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 20;
+  min-width: 100px;
+}
+.note-display.show { opacity: 1; }
+.note-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  color: var(--gold-light);
+  font-weight: 700;
+  line-height: 1;
+}
+.note-hz {
+  font-size: 11px;
+  color: var(--parchment);
+  opacity: 0.6;
+  margin-top: 3px;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+.string-num {
+  font-size: 10px;
+  color: var(--gold);
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+/* ── footer info ── */
+.footer-info {
+  margin-top: 20px;
+  text-align: center;
+  color: rgba(245,232,200,0.4);
+  font-size: 12px;
+  font-style: italic;
+  z-index: 10;
+  position: relative;
+}
+
+/* ── ripple layer ── */
+.ripple-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 15;
+}
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,184,75,0.35) 0%, transparent 70%);
+  width: 60px; height: 60px;
+  margin-left: -30px; margin-top: -30px;
+  animation: rippleOut 0.6s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rippleOut {
+  0%   { transform: scale(0.3); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">በገና • Virtual Instrument</div>
+  <h1>The <span>Begena</span></h1>
+</div>
+
+<div class="kignit-bar" id="kignitBar">
+  <button class="kignit-btn active" data-kignit="selamta">Selamta</button>
+  <button class="kignit-btn" data-kignit="wanen">Wanen (Tizita)</button>
+  <button class="kignit-btn" data-kignit="ambasel">Ambasel</button>
+  <button class="kignit-btn" data-kignit="anchiHoye">Anchi Hoye</button>
+  <button class="kignit-btn" data-kignit="minorWanen">Minor Wanen</button>
+  <button class="kignit-btn" data-kignit="bati">Bati</button>
+</div>
+
+<div class="instrument-wrap">
+  <div class="ripple-container" id="rippleContainer"></div>
+
+  <svg id="begena-svg" viewBox="0 0 340 760" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Wood grain gradient for pillars -->
+      <linearGradient id="pillarLeft" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="#1a0a02"/>
+        <stop offset="30%" stop-color="#5c2e0e"/>
+        <stop offset="60%" stop-color="#7a3c14"/>
+        <stop offset="100%" stop-color="#3b1a06"/>
+      </linearGradient>
+      <linearGradient id="pillarRight" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="#3b1a06"/>
+        <stop offset="40%" stop-color="#7a3c14"/>
+        <stop offset="70%" stop-color="#5c2e0e"/>
+        <stop offset="100%" stop-color="#1a0a02"/>
+      </linearGradient>
+      <!-- Leather soundbox gradient -->
+      <radialGradient id="leatherGrad" cx="50%" cy="40%" r="65%">
+        <stop offset="0%" stop-color="#b04820"/>
+        <stop offset="50%" stop-color="#8a3010"/>
+        <stop offset="100%" stop-color="#4a1805"/>
+      </radialGradient>
+      <!-- Crossbar gradient -->
+      <linearGradient id="crossbarGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#8b4a1e"/>
+        <stop offset="40%" stop-color="#c07840"/>
+        <stop offset="100%" stop-color="#5c2e0e"/>
+      </linearGradient>
+      <!-- String glow filter -->
+      <filter id="strGlow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="2.5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <!-- Pluck glow -->
+      <filter id="pluckGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <!-- Pillar carving texture -->
+      <pattern id="carvingL" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+        <rect width="18" height="18" fill="none"/>
+        <path d="M0,9 Q4.5,5 9,9 Q13.5,13 18,9" stroke="rgba(0,0,0,0.25)" stroke-width="1.5" fill="none"/>
+        <path d="M0,4 Q4.5,0 9,4 Q13.5,8 18,4" stroke="rgba(0,0,0,0.15)" stroke-width="1" fill="none"/>
+        <path d="M0,14 Q4.5,10 9,14 Q13.5,18 18,14" stroke="rgba(0,0,0,0.15)" stroke-width="1" fill="none"/>
+      </pattern>
+      <!-- Leather burl pattern -->
+      <filter id="burl">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="4" seed="8"/>
+        <feColorMatrix type="saturate" values="0"/>
+        <feBlend in="SourceGraphic" mode="overlay" result="blend"/>
+        <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+      </filter>
+    </defs>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- BODY BACKGROUND                           -->
+    <!-- ══════════════════════════════════════════ -->
+    <rect width="340" height="760" fill="var(--bg)" rx="0"/>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- LEFT PILLAR                               -->
+    <!-- ══════════════════════════════════════════ -->
+    <!-- Main pillar body -->
+    <rect x="28" y="100" width="36" height="500" rx="4" fill="url(#pillarLeft)"/>
+    <!-- Carving overlay -->
+    <rect x="28" y="100" width="36" height="500" rx="4" fill="url(#carvingL)" opacity="0.5"/>
+    <!-- Inner highlight -->
+    <rect x="34" y="110" width="6" height="480" rx="2" fill="rgba(200,140,60,0.12)"/>
+    <!-- Edge shadow -->
+    <rect x="28" y="100" width="5" height="500" rx="2" fill="rgba(0,0,0,0.4)"/>
+    <rect x="59" y="100" width="5" height="500" rx="2" fill="rgba(0,0,0,0.3)"/>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- RIGHT PILLAR                              -->
+    <!-- ══════════════════════════════════════════ -->
+    <rect x="276" y="100" width="36" height="500" rx="4" fill="url(#pillarRight)"/>
+    <rect x="276" y="100" width="36" height="500" rx="4" fill="url(#carvingL)" opacity="0.5"/>
+    <rect x="300" y="110" width="6" height="480" rx="2" fill="rgba(200,140,60,0.12)"/>
+    <rect x="276" y="100" width="5" height="500" rx="2" fill="rgba(0,0,0,0.3)"/>
+    <rect x="307" y="100" width="5" height="500" rx="2" fill="rgba(0,0,0,0.4)"/>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- LEFT FINIAL (ornate knotwork top)         -->
+    <!-- ══════════════════════════════════════════ -->
+    <!-- Base of finial -->
+    <rect x="14" y="62" width="64" height="48" rx="6" fill="#3b1a06"/>
+    <rect x="14" y="62" width="64" height="48" rx="6" fill="url(#carvingL)" opacity="0.8"/>
+    <!-- Knotwork squares -->
+    <rect x="20" y="68" width="22" height="22" rx="3" fill="#5c2e0e"/>
+    <rect x="22" y="70" width="18" height="18" rx="2" fill="none" stroke="var(--gold)" stroke-width="1.2" opacity="0.7"/>
+    <path d="M22,79 L30,70 L40,79 L30,88 Z" fill="none" stroke="var(--gold)" stroke-width="1" opacity="0.5"/>
+    <rect x="50" y="68" width="22" height="22" rx="3" fill="#5c2e0e"/>
+    <rect x="52" y="70" width="18" height="18" rx="2" fill="none" stroke="var(--gold)" stroke-width="1.2" opacity="0.7"/>
+    <path d="M52,79 L60,70 L70,79 L60,88 Z" fill="none" stroke="var(--gold)" stroke-width="1" opacity="0.5"/>
+    <!-- Scrollwork curves -->
+    <path d="M16,64 Q10,58 16,52 Q24,46 28,54" fill="none" stroke="#8b4a1e" stroke-width="3" stroke-linecap="round"/>
+    <path d="M76,64 Q82,58 76,52 Q68,46 64,54" fill="none" stroke="#8b4a1e" stroke-width="3" stroke-linecap="round"/>
+    <!-- Top arch -->
+    <path d="M16,62 Q46,30 76,62" fill="none" stroke="#5c2e0e" stroke-width="4"/>
+    <path d="M20,62 Q46,36 72,62" fill="none" stroke="#8b4a1e" stroke-width="2"/>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- RIGHT FINIAL                              -->
+    <!-- ══════════════════════════════════════════ -->
+    <rect x="262" y="62" width="64" height="48" rx="6" fill="#3b1a06"/>
+    <rect x="262" y="62" width="64" height="48" rx="6" fill="url(#carvingL)" opacity="0.8"/>
+    <rect x="268" y="68" width="22" height="22" rx="3" fill="#5c2e0e"/>
+    <rect x="270" y="70" width="18" height="18" rx="2" fill="none" stroke="var(--gold)" stroke-width="1.2" opacity="0.7"/>
+    <path d="M270,79 L278,70 L288,79 L278,88 Z" fill="none" stroke="var(--gold)" stroke-width="1" opacity="0.5"/>
+    <rect x="298" y="68" width="22" height="22" rx="3" fill="#5c2e0e"/>
+    <rect x="300" y="70" width="18" height="18" rx="2" fill="none" stroke="var(--gold)" stroke-width="1.2" opacity="0.7"/>
+    <path d="M300,79 L308,70 L318,79 L308,88 Z" fill="none" stroke="var(--gold)" stroke-width="1" opacity="0.5"/>
+    <path d="M264,64 Q258,58 264,52 Q272,46 276,54" fill="none" stroke="#8b4a1e" stroke-width="3" stroke-linecap="round"/>
+    <path d="M324,64 Q330,58 324,52 Q316,46 312,54" fill="none" stroke="#8b4a1e" stroke-width="3" stroke-linecap="round"/>
+    <path d="M264,62 Q294,30 324,62" fill="none" stroke="#5c2e0e" stroke-width="4"/>
+    <path d="M268,62 Q294,36 320,62" fill="none" stroke="#8b4a1e" stroke-width="2"/>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- CROSSBAR (top, where tuning pegs are)     -->
+    <!-- ══════════════════════════════════════════ -->
+    <rect x="28" y="96" width="284" height="22" rx="4" fill="url(#crossbarGrad)"/>
+    <rect x="28" y="96" width="284" height="22" rx="4" fill="url(#carvingL)" opacity="0.4"/>
+    <!-- highlight line -->
+    <rect x="30" y="97" width="280" height="4" rx="2" fill="rgba(220,160,80,0.2)"/>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TUNING PEGS (10 of them on crossbar)     -->
+    <!-- ══════════════════════════════════════════ -->
+    <!-- Pegs are small rectangular blocks on crossbar, staggered -->
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- LEATHER SOUNDBOX                          -->
+    <!-- ══════════════════════════════════════════ -->
+    <rect x="64" y="540" width="212" height="185" rx="6" fill="url(#leatherGrad)"/>
+    <!-- Burl texture overlay -->
+    <rect x="64" y="540" width="212" height="185" rx="6" fill="rgba(0,0,0,0.1)" filter="url(#burl)"/>
+    <!-- Leather edge stitching -->
+    <rect x="64" y="540" width="212" height="185" rx="6" fill="none" stroke="#2a0e02" stroke-width="3"/>
+    <rect x="68" y="544" width="204" height="177" rx="4" fill="none" stroke="rgba(180,90,30,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+    <!-- Surface sheen -->
+    <ellipse cx="170" cy="590" rx="90" ry="50" fill="rgba(220,120,50,0.08)"/>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- BIRKUMA (bridge on soundbox face)         -->
+    <!-- ══════════════════════════════════════════ -->
+    <!-- Main bridge body -->
+    <rect x="130" y="618" width="80" height="16" rx="3" fill="#2c1505"/>
+    <rect x="130" y="618" width="80" height="16" rx="3" fill="url(#crossbarGrad)" opacity="0.7"/>
+    <!-- Bridge top rail -->
+    <rect x="132" y="616" width="76" height="5" rx="2" fill="#8b4a1e"/>
+    <!-- Bridge notches for strings -->
+    <rect x="140" y="617" width="4" height="14" rx="1" fill="#1a0a02"/>
+    <rect x="151" y="617" width="4" height="14" rx="1" fill="#1a0a02"/>
+    <rect x="162" y="617" width="4" height="14" rx="1" fill="#1a0a02"/>
+    <rect x="173" y="617" width="4" height="14" rx="1" fill="#1a0a02"/>
+    <rect x="184" y="617" width="4" height="14" rx="1" fill="#1a0a02"/>
+    <!-- Leather buzzing pieces (birr) on bridge -->
+    <rect x="138" y="612" width="8" height="6" rx="1" fill="rgba(180,90,30,0.6)" stroke="rgba(100,40,10,0.4)" stroke-width="0.5"/>
+    <rect x="149" y="612" width="8" height="6" rx="1" fill="rgba(180,90,30,0.6)" stroke="rgba(100,40,10,0.4)" stroke-width="0.5"/>
+    <rect x="160" y="612" width="8" height="6" rx="1" fill="rgba(180,90,30,0.6)" stroke="rgba(100,40,10,0.4)" stroke-width="0.5"/>
+    <rect x="171" y="612" width="8" height="6" rx="1" fill="rgba(180,90,30,0.6)" stroke="rgba(100,40,10,0.4)" stroke-width="0.5"/>
+    <rect x="182" y="612" width="8" height="6" rx="1" fill="rgba(180,90,30,0.6)" stroke="rgba(100,40,10,0.4)" stroke-width="0.5"/>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- BOTTOM TAILPIECE                          -->
+    <!-- ══════════════════════════════════════════ -->
+    <rect x="120" y="726" width="100" height="18" rx="3" fill="#c8a060"/>
+    <rect x="122" y="728" width="96" height="14" rx="2" fill="none" stroke="rgba(100,60,10,0.5)" stroke-width="1"/>
+    <!-- Tailpiece string anchor holes -->
+    <circle cx="142" cy="735" r="2" fill="rgba(0,0,0,0.5)"/>
+    <circle cx="153" cy="735" r="2" fill="rgba(0,0,0,0.5)"/>
+    <circle cx="164" cy="735" r="2" fill="rgba(0,0,0,0.5)"/>
+    <circle cx="175" cy="735" r="2" fill="rgba(0,0,0,0.5)"/>
+    <circle cx="186" cy="735" r="2" fill="rgba(0,0,0,0.5)"/>
+    <circle cx="197" cy="735" r="2" fill="rgba(0,0,0,0.5)"/>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- STRINGS (10 — interactive)               -->
+    <!-- ══════════════════════════════════════════ -->
+    <!-- Strings fan from crossbar down to soundbox tailpiece -->
+    <!-- String positions: x at top (crossbar ~y=107), x at bottom (tailpiece ~y=726) -->
+    <!-- Fan layout: top spreads 80-260, bottom 140-200 -->
+    <g id="stringsGroup"></g>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TUNING PEG DETAILS (rendered over strings)-->
+    <!-- ══════════════════════════════════════════ -->
+    <g id="pegsGroup"></g>
+
+  </svg>
+
+  <!-- Note display overlay -->
+  <div class="note-display" id="noteDisplay">
+    <div class="note-name" id="noteName">—</div>
+    <div class="note-hz" id="noteHz">— Hz</div>
+    <div class="string-num" id="stringNum">String —</div>
+  </div>
+</div>
+
+<div class="footer-info">Tap or click a string to play • Switch Kignit above to retune</div>
+
+<script>
+// ── Scale data (6 Kignits × 10 strings) ──────────────────────────────────────
+// Note names and approximate Hz for Ethiopian Begena tunings
+// Based on ethnomusicological research; Selamta is the primary reference tuning
+
+const KIGNITS = {
+  selamta: {
+    name: "Selamta",
+    notes: [
+      { note: "E2",  hz: 82.4  },
+      { note: "A2",  hz: 110.0 },
+      { note: "B2",  hz: 123.5 },
+      { note: "D3",  hz: 146.8 },
+      { note: "E3",  hz: 164.8 },
+      { note: "F#3", hz: 185.0 },
+      { note: "A3",  hz: 220.0 },
+      { note: "B3",  hz: 246.9 },
+      { note: "D4",  hz: 293.7 },
+      { note: "E4",  hz: 329.6 },
+    ]
+  },
+  wanen: {
+    name: "Wanen (Tizita)",
+    notes: [
+      { note: "D2",  hz: 73.4  },
+      { note: "F2",  hz: 87.3  },
+      { note: "G2",  hz: 98.0  },
+      { note: "A2",  hz: 110.0 },
+      { note: "C3",  hz: 130.8 },
+      { note: "D3",  hz: 146.8 },
+      { note: "F3",  hz: 174.6 },
+      { note: "G3",  hz: 196.0 },
+      { note: "A3",  hz: 220.0 },
+      { note: "C4",  hz: 261.6 },
+    ]
+  },
+  ambasel: {
+    name: "Ambasel",
+    notes: [
+      { note: "E2",  hz: 82.4  },
+      { note: "G2",  hz: 98.0  },
+      { note: "A2",  hz: 110.0 },
+      { note: "B2",  hz: 123.5 },
+      { note: "D3",  hz: 146.8 },
+      { note: "E3",  hz: 164.8 },
+      { note: "G3",  hz: 196.0 },
+      { note: "A3",  hz: 220.0 },
+      { note: "B3",  hz: 246.9 },
+      { note: "D4",  hz: 293.7 },
+    ]
+  },
+  anchiHoye: {
+    name: "Anchi Hoye",
+    notes: [
+      { note: "C2",  hz: 65.4  },
+      { note: "D2",  hz: 73.4  },
+      { note: "F2",  hz: 87.3  },
+      { note: "G2",  hz: 98.0  },
+      { note: "A2",  hz: 110.0 },
+      { note: "C3",  hz: 130.8 },
+      { note: "D3",  hz: 146.8 },
+      { note: "F3",  hz: 174.6 },
+      { note: "G3",  hz: 196.0 },
+      { note: "A3",  hz: 220.0 },
+    ]
+  },
+  minorWanen: {
+    name: "Minor Wanen",
+    notes: [
+      { note: "D2",  hz: 73.4  },
+      { note: "E2",  hz: 82.4  },
+      { note: "F2",  hz: 87.3  },
+      { note: "A2",  hz: 110.0 },
+      { note: "Bb2", hz: 116.5 },
+      { note: "D3",  hz: 146.8 },
+      { note: "E3",  hz: 164.8 },
+      { note: "F3",  hz: 174.6 },
+      { note: "A3",  hz: 220.0 },
+      { note: "Bb3", hz: 233.1 },
+    ]
+  },
+  bati: {
+    name: "Bati",
+    notes: [
+      { note: "E2",  hz: 82.4  },
+      { note: "G2",  hz: 98.0  },
+      { note: "A2",  hz: 110.0 },
+      { note: "C3",  hz: 130.8 },
+      { note: "D3",  hz: 146.8 },
+      { note: "E3",  hz: 164.8 },
+      { note: "G3",  hz: 196.0 },
+      { note: "A3",  hz: 220.0 },
+      { note: "C4",  hz: 261.6 },
+      { note: "D4",  hz: 293.7 },
+    ]
+  }
+};
+
+// ── String geometry: fan from crossbar to tailpiece ─────────────────────────
+// 10 strings, fan out from tailpiece (centered ~170) up to crossbar (spread ~80–260)
+const STRING_COUNT = 10;
+const topXStart = 86, topXEnd = 254;  // crossbar spread
+const botXStart = 142, botXEnd = 198; // tailpiece spread
+const topY = 110, botY = 724;
+
+function getStringX(i, isTop) {
+  const t = i / (STRING_COUNT - 1);
+  return isTop
+    ? topXStart + t * (topXEnd - topXStart)
+    : botXStart + t * (botXEnd - botXStart);
+}
+
+// ── Audio engine (Web Audio API) ─────────────────────────────────────────────
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioContext();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playString(hz, stringIdx) {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const dur = 4.5;
+
+  // Fundamental tone
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(hz, now);
+  // Slight detuning for Begena character
+  osc.detune.setValueAtTime(-8, now);
+
+  // Birr buzz (the unique leather buzzer sound)
+  const buzz = audioCtx.createOscillator();
+  const buzzGain = audioCtx.createGain();
+  buzz.type = 'sawtooth';
+  buzz.frequency.setValueAtTime(hz * 1.005, now); // slight detuning = buzzing
+  buzzGain.gain.setValueAtTime(0.06, now);
+  buzzGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+  // 2nd harmonic for richness
+  const harm = audioCtx.createOscillator();
+  const harmGain = audioCtx.createGain();
+  harm.type = 'sine';
+  harm.frequency.setValueAtTime(hz * 2, now);
+  harmGain.gain.setValueAtTime(0.15, now);
+  harmGain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+
+  // Main envelope: sharp attack, long resonant decay
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.55, now + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.18, now + 0.5);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+  // Low-pass filter for warm Begena timbre
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(800 + hz * 2, now);
+  filter.Q.setValueAtTime(2, now);
+
+  const masterGain = audioCtx.createGain();
+  masterGain.gain.setValueAtTime(0.7, now);
+
+  osc.connect(gain); gain.connect(filter);
+  buzz.connect(buzzGain); buzzGain.connect(filter);
+  harm.connect(harmGain); harmGain.connect(filter);
+  filter.connect(masterGain);
+  masterGain.connect(audioCtx.destination);
+
+  osc.start(now); osc.stop(now + dur);
+  buzz.start(now); buzz.stop(now + dur);
+  harm.start(now); harm.stop(now + dur);
+}
+
+// ── Render strings ────────────────────────────────────────────────────────────
+let activeKignit = 'selamta';
+let noteTimeout = null;
+const stringsGroup = document.getElementById('stringsGroup');
+const pegsGroup = document.getElementById('pegsGroup');
+const noteDisplay = document.getElementById('noteDisplay');
+const noteName = document.getElementById('noteName');
+const noteHz = document.getElementById('noteHz');
+const stringNum = document.getElementById('stringNum');
+
+function renderStrings() {
+  stringsGroup.innerHTML = '';
+  pegsGroup.innerHTML = '';
+  const kignit = KIGNITS[activeKignit];
+
+  for (let i = 0; i < STRING_COUNT; i++) {
+    const tx = getStringX(i, true);
+    const bx = getStringX(i, false);
+    const thickness = 0.9 + (1 - i / STRING_COUNT) * 1.4; // lower strings thicker
+
+    // Tuning peg
+    const pegX = tx - 4;
+    const peg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    peg.setAttribute('x', pegX); peg.setAttribute('y', '100');
+    peg.setAttribute('width', '8'); peg.setAttribute('height', '14');
+    peg.setAttribute('rx', '2');
+    peg.setAttribute('fill', '#c8a060');
+    peg.setAttribute('stroke', '#5c2e0e');
+    peg.setAttribute('stroke-width', '0.5');
+    pegsGroup.appendChild(peg);
+
+    // String shadow
+    const shadow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    shadow.setAttribute('x1', tx + 1.5); shadow.setAttribute('y1', topY);
+    shadow.setAttribute('x2', bx + 1.5); shadow.setAttribute('y2', botY);
+    shadow.setAttribute('stroke', 'rgba(0,0,0,0.35)');
+    shadow.setAttribute('stroke-width', thickness + 1);
+    stringsGroup.appendChild(shadow);
+
+    // String group (hit zone)
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'string-hit');
+    g.setAttribute('data-index', i);
+
+    // Invisible wide hit zone
+    const hitZone = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    hitZone.setAttribute('x1', tx); hitZone.setAttribute('y1', topY - 10);
+    hitZone.setAttribute('x2', bx); hitZone.setAttribute('y2', botY + 10);
+    hitZone.setAttribute('stroke', 'transparent');
+    hitZone.setAttribute('stroke-width', '22');
+
+    // Visible string
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('class', 'string-line');
+    line.setAttribute('x1', tx); line.setAttribute('y1', topY);
+    line.setAttribute('x2', bx); line.setAttribute('y2', botY);
+    line.setAttribute('stroke', `rgba(${180 + i*6}, ${150 + i*4}, ${90 + i*3}, 0.88)`);
+    line.setAttribute('stroke-width', thickness);
+    line.setAttribute('stroke-linecap', 'round');
+
+    g.appendChild(hitZone);
+    g.appendChild(line);
+    stringsGroup.appendChild(g);
+
+    // Events
+    function onPluck(e) {
+      e.preventDefault();
+      pluckString(i, tx, bx, line, kignit.notes[i]);
+    }
+    g.addEventListener('mousedown', onPluck);
+    g.addEventListener('touchstart', onPluck, { passive: false });
+  }
+}
+
+function pluckString(i, tx, bx, lineEl, noteData) {
+  // Play audio
+  playString(noteData.hz, i);
+
+  // Visual: string glow
+  lineEl.setAttribute('stroke', '#f0d090');
+  lineEl.setAttribute('filter', 'url(#strGlow)');
+  lineEl.setAttribute('stroke-width', 2.5);
+  setTimeout(() => {
+    const t = i / (STRING_COUNT - 1);
+    lineEl.setAttribute('stroke', `rgba(${180 + i*6}, ${150 + i*4}, ${90 + i*3}, 0.88)`);
+    lineEl.removeAttribute('filter');
+    lineEl.setAttribute('stroke-width', 0.9 + (1 - i / STRING_COUNT) * 1.4);
+  }, 350);
+
+  // Ripple at pluck point (midway up string)
+  addRipple(tx * 0.35 + bx * 0.65, topY + (botY - topY) * 0.45);
+
+  // Note display
+  noteName.textContent = noteData.note;
+  noteHz.textContent = noteData.hz.toFixed(1) + ' Hz';
+  stringNum.textContent = `String ${i + 1}`;
+  noteDisplay.classList.add('show');
+  clearTimeout(noteTimeout);
+  noteTimeout = setTimeout(() => noteDisplay.classList.remove('show'), 1800);
+}
+
+function addRipple(x, y) {
+  const wrap = document.getElementById('rippleContainer');
+  const svgEl = document.getElementById('begena-svg');
+  const rect = svgEl.getBoundingClientRect();
+  const vbW = 340, vbH = 760;
+  const scaleX = rect.width / vbW;
+  const scaleY = rect.height / vbH;
+  const px = rect.left + x * scaleX;
+  const py = rect.top + y * scaleY;
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  r.style.left = (px - rect.left) + 'px';
+  r.style.top  = (py - rect.top)  + 'px';
+  wrap.appendChild(r);
+  setTimeout(() => r.remove(), 700);
+}
+
+// ── Kignit switching ─────────────────────────────────────────────────────────
+document.getElementById('kignitBar').addEventListener('click', e => {
+  const btn = e.target.closest('.kignit-btn');
+  if (!btn) return;
+  document.querySelectorAll('.kignit-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeKignit = btn.dataset.kignit;
+  renderStrings();
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+renderStrings();
+</script>
+</body>
+</html>
